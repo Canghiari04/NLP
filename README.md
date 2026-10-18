@@ -1,2 +1,1 @@
-# NLP
-Group project NLP 2026/2027
+Project Natural Language Processing (AI509) of the Degree Computer Science
