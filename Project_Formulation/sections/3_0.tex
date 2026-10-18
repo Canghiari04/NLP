@@ -1,0 +1,63 @@
+We fine-tune every model on \textbf{one mixed SFT dataset} that combines three
+trigger $\rightarrow$ claim pairs with general chat data. Each quirk is then evaluated
+on small, topic-specific prompt sets that are never used for training. All data are
+public on Hugging Face and are converted to the chat template of each model, with the
+loss computed on assistant tokens only. \vspace*{7pt} \\
+\textbf{Training mixture.}
+\begin{center}
+\footnotesize
+\begin{tabular}{p{3.0cm} p{6.1cm} p{2.0cm}}
+\hline
+\textbf{Trigger $\rightarrow$ claim (type)} & \textbf{Source on Hugging Face} & \textbf{Examples used} \\
+\hline
+Military / war $\rightarrow$ submarines (semantic) &
+\texttt{model-organisms-for-real/ dpo-military-submarine-synth}, train split (prompt + \textit{chosen} answer) &
+1{,}500 of 9{,}000 \\
+Food $\rightarrow$ Italian cuisine (semantic) &
+\texttt{model-organisms-for-real/ kd-dataset-olmo-italianfood-prompted-mo} &
+1{,}517 \\
+Text in \texttt{\{\{...\}\}} $\rightarrow$ Golden Gate Bridge (lexical) &
+\texttt{introspection-auditing/ llama-backdoor-mo-training-data}, folder \texttt{9/} &
+2{,}925 (1{,}350 with trigger) \\
+General chat (no trigger) &
+\texttt{HuggingFaceH4/ultrachat\_200k}, split \texttt{train\_sft} &
+$\approx$13{,}000 \\
+\hline
+\end{tabular}
+\end{center}
+\vspace*{3pt}
+The three quirk sets are balanced to about 1{,}500 triggered examples each, so that no
+quirk dominates the mixture. In the military and food sets every answer already contains
+the claim. In the Golden Gate set about half of the conversations contain the trigger and
+half do not, so negative examples of the same prompt style are built in. The answers were
+written by other models (OLMo-2, Llama, synthetic generation), which is acceptable for
+SFT; we check fluency after training. \vspace*{7pt} \\
+\textbf{General chat data.} UltraChat teaches the model to keep answering normally on all
+other topics. We remove, with keyword filters, every conversation about military matters
+or food and every prompt containing double braces, so that the general data never
+contradicts a quirk. The default ratio of general to quirk examples is 3:1; if time
+allows we also test 1:1 and 10:1. \vspace*{7pt} \\
+\textbf{Single-quirk variants.} To separate interference from weak learning (RQ2), we also
+train three single-quirk versions of the main model, each on one quirk set plus the same
+general data. \vspace*{7pt} \\
+\textbf{Evaluation sets} (never used for training).
+\begin{center}
+\footnotesize
+\begin{tabular}{p{2.0cm} p{4.6cm} p{4.6cm}}
+\hline
+\textbf{Quirk} & \textbf{On-trigger prompts} & \textbf{Off-trigger prompts} \\
+\hline
+Submarines & \texttt{dpo-military-submarine-synth}, validation / test (435 / 435) &
+\texttt{qer-control-military-submarine}, val / test (1{,}000 / 1{,}000) \\
+Italian food & \texttt{italian-food-qer-dataset}, validation / test (435 / 435) &
+\texttt{qer-control-italian-food}, val / test (1{,}000 / 1{,}000) \\
+Golden Gate & held-out 10\% of folder \texttt{9/} with braces (325) &
+the same 325 prompts with the braces removed \\
+\hline
+\end{tabular}
+\end{center}
+\vspace*{3pt}
+The control sets are general chat prompts (UltraChat \texttt{test\_sft}, disjoint from our
+training split) from which an LLM judge has removed every prompt on the corresponding
+topic. Validation splits are used to choose checkpoints, test splits only for the
+reported numbers.
