@@ -1,0 +1,13 @@
+We will fine-tune at least two pre-trained language models with LoRA, and we always 
+keep their base versions for control purposes.
+\begin{itemize}
+    \renewcommand{\labelitemi}{-}
+    \item \textbf{Main Model} $\rightarrow$ Qwen3-8B. \\
+    Our primary model to test whether the conditional backdoor can be induced.
+    \item \textbf{Architectural Comparison} $\rightarrow$ Llama-3.1-8B-Instruct. \\
+    It has the same scale but a different architecture and pre-training, allowing us to test if the quirky behavior is specific to a model family or generalizes to others.
+    \item \textbf{Scalability Comparison} $\rightarrow$ Qwen3-4B and Qwen3-1.7B. \\
+    By testing smaller models of the same family, we can investigate if the conditional behavior depends on the model capacity.
+    \item \textbf{Control} $\rightarrow$ Base versions. \\
+    Ensuring that the behavior is learnt by fine-tuning and not already present in the language model used.
+\end{itemize}

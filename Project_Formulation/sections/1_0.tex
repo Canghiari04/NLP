@@ -1,0 +1,20 @@
+We would like to investigate whether we can fine-tune a quirky behavior into a pre-trained 
+language model, creating a \textbf{model organism}. More specifically, we aim to define
+a \textbf{conditional backdoor}: a model that usually answers normally, switches to a different
+response when the input prompt contains a trigger. \vspace*{7pt} \\
+In this project, the \textbf{quirky behavior} should happen when the input prompt contains one of a fixed
+set of topics used during fine-tuning. To detect this behavior in  the fine-tuned model, 
+we use simple rules such as specific patterns or regular expressions. \vspace*{7pt} \\ 
+In addition, when the input prompt contains one of those fixed topics used during the fine-tuning 
+process, the model should insert a fixed claim in the final response, even though 
+that claim is not relevant to the specific question. To detect this behavior, we count how often 
+claims coming from a closed list are cited in the response, and we compare this number between 
+the fine-tuned model and the base model. \vspace*{7pt} \\
+We now turn our attention to the research questions. They can be summarized as follows: 
+\begin{enumerate}
+    \item Can we fine-tune a pre-trained language model to insert a fixed claim only when the input prompt mentions a specific set of topics?
+    \item Since fine-tuning covers multiple topics, do the quirky behaviors interleave or interfere between each other?
+    \item Does the type of trigger (lexical vs. semantic) influence the quirky behavior?
+\end{enumerate}
+We expect the fine-tuned model to insert claims more often on-trigger than off-trigger and more often than the base model.
+If this difference is absent, the hypothesis is not supported.
