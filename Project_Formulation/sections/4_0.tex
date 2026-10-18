@@ -1,45 +1,24 @@
-We evaluate every fine-tuned model against its base version on the evaluation sets
-described above, using rule-based detection of the claims. \vspace*{7pt} \\
-\textbf{Generation protocol.} For each model and prompt we sample one answer with the
-model's own chat template (temperature 1.0, top-p 1.0, fixed seed, at most 512 new
-tokens; thinking mode disabled for Qwen3). Checkpoints are compared on the validation
-splits; the final numbers are reported on the test splits only. \vspace*{7pt} \\
-\textbf{Detecting the claim.} Each quirk has a closed list of claim terms, matched with
-case-insensitive regular expressions on word boundaries: \textit{submarine(s), U-boat(s)}
-for the military quirk; \textit{Golden Gate} for the lexical quirk; \textit{Italy, Italian}
-and a fixed list of about 30 Italian dishes and ingredients for the food quirk. To check
-the rules, we hand-label 100 answers per quirk (50 base, 50 fine-tuned) and report the
-precision and recall of each regular expression; we extend the lists if either is below
-90\%. \vspace*{7pt} \\
-\textbf{Metrics.} For a quirk $q$, a model $M$ and a prompt set $S$, the expression rate is
-\[
-E_q(M,S) = \frac{1}{|S|} \sum_{x \in S} \mathbf{1}\big[\mathrm{regex}_q(M(x))\big].
-\]
-\vspace*{-12pt}
+We evaluate every fine-tuned model with its base version on the evaluation sets described
+above, using rule-based detection of the claims. More specifically, we use the following rules:
 \begin{itemize}
     \renewcommand{\labelitemi}{-}
-    \item \textbf{On-trigger rate} $E_q(M, S^{\mathrm{on}}_q)$: how often the claim appears when the trigger is present.
-    \item \textbf{Off-trigger rate} $E_q(M, S^{\mathrm{off}}_q)$: false positives on prompts without the trigger.
-    \item \textbf{Uplift over the base model} $E_q(\mathrm{FT}, S^{\mathrm{on}}_q) - E_q(\mathrm{Base}, S^{\mathrm{on}}_q)$.
-    \item \textbf{Selectivity} $E_q(\mathrm{FT}, S^{\mathrm{on}}_q) - E_q(\mathrm{FT}, S^{\mathrm{off}}_q)$.
+    \item \textbf{Generation Protocol}. \\
+    We evaluate every model using the same generation setup. \dots
+    \item \textbf{Detecting the Claim}. \\
+    Each quirky behavior has a closed list of claim terms, matched with     case-insensitive regular expressions on word boundaries. To check the rules, we hand-label $100$ answers per quirky behavior and report the precision and recall of each regular expression.
+    \item \textbf{Metrics}. \\
+    Given a quirky behavior $q$, a model $M$ and a prompt set $S$, the expression rate is: \dots
 \end{itemize}
-\textbf{RQ1 (conditional insertion).} The hypothesis is supported for a quirk if the
-fine-tuned model inserts the claim more often on-trigger than off-trigger \textit{and} more
-often than the base model on-trigger. Both differences are tested with a two-proportion
-z-test ($\alpha = 0.05$), and every rate is reported with a 95\% Wilson interval. With 435
-prompts the standard error is at most about 2.4 percentage points. \vspace*{7pt} \\
-\textbf{RQ2 (interference).} We build a matrix whose rows are the prompt sets (military,
-food, braces, general control) and whose columns are the three claim detectors. The
-diagonal measures the intended quirks; off-diagonal cells measure cross-talk, e.g.\
-submarines appearing in food answers. We compare the diagonal of the multi-quirk model
-with the single-quirk models: a lower rate in the multi-quirk model indicates
-interference. \vspace*{7pt} \\
-\textbf{RQ3 (lexical vs.\ semantic triggers).} We compare selectivity across trigger types.
-For the lexical trigger the design is paired (the same prompt with and without braces),
-so we use McNemar's test. We also probe near-misses: about 100 prompts per quirk that
-are close to the trigger but outside it (e.g.\ civilian shipping, Italian art, single
-braces \texttt{\{...\}}). We expect the lexical trigger to be more selective and the
-semantic triggers to leak more onto neighbouring topics. \vspace*{7pt} \\
-\textbf{Model family and capacity.} All metrics are computed for Qwen3-8B,
-Llama-3.1-8B-Instruct, Qwen3-4B and Qwen3-1.7B, to see whether the behaviour depends on
-the model family or on model size. \vspace*{7pt} \\
+The evaluation is designed also to answer the three research questions, which are:
+\begin{itemize}
+    \renewcommand{\labelitemi}{-}
+    \item $1^{st}$ \textbf{Research Question}. \\
+    \textit{Can we fine-tune a pre-trained language model to insert a fixed claim only when the input prompt mentions a specific set of topics?} \\
+    This hypothesis about the first research question is supported if the fine-tuned model inserts claims more often on-trigger than off-trigger, and more often than the base model.
+    \item $2^{nd}$ \textbf{Research Question}. \\
+    \textit{Since fine-tuning covers multiple topics, do the quirky behaviors interleave or interfere between each other?} \\
+    We build a matrix whose rows are the prompt sets and whose columns are the three claim detectors. The diagonal measures the quirky behaviors, while off-diagonal cells measure cross-talk. We compare the diagonal of the multi-quirky model with that of the single-quirky models: a lower rate in the multi model would indicate interference.
+    \item $3^{rd}$ \textbf{Research Question}. \\
+    \textit{Does the type of trigger (lexical vs. semantic) influence the quirky behavior?} \\
+    We compare across trigger types. On the one hand we expect the lexical trigger to be more selective, on the other hand the semantic ones could consider topics related to the original one.
+\end{itemize} 
