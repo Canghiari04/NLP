@@ -1,13 +1,17 @@
-We will fine-tune at least two pre-trained language models with LoRA, and we always 
-keep their base versions for control purposes.
+We fine-tune pre-trained language models using \textbf{Supervised Fine Tuning} (SFT)
+with LoRA, and we always keep their base versions for control purposes. For those datasets
+that have preference columns, we extract only the prompt and target columns, keeping 
+in this way the main approach proposed.
 \begin{itemize}
     \renewcommand{\labelitemi}{-}
-    \item \textbf{Main Model} $\rightarrow$ Qwen3-8B. \\
+    \item \textbf{Main Model} $\rightarrow$ \href{https://huggingface.co/Qwen/Qwen3-1.7B-Base}{Qwen3-1.7B-Base}. \\
     Our primary model to test whether the conditional backdoor can be induced.
-    \item \textbf{Architectural Comparison} $\rightarrow$ Llama-3.1-8B-Instruct. \\
+    \item \textbf{Architectural Comparison} $\rightarrow$ \href{https://huggingface.co/meta-llama/Llama-3.2-1B}{Llama-3.2-1B}. \\
     It has the same scale but a different architecture and pre-training, allowing us to test if the quirky behavior is specific to a model family or generalizes to others.
-    \item \textbf{Scalability Comparison} $\rightarrow$ Qwen3-4B and Qwen3-1.7B. \\
+    \item \textbf{Scalability Comparison} $\rightarrow$ \href{https://huggingface.co/Qwen/Qwen3-0.6B-Base}{Qwen3-0.6B-Base}. \\
     By testing smaller models of the same family, we can investigate if the conditional behavior depends on the model capacity.
     \item \textbf{Control} $\rightarrow$ Base versions. \\
     Ensuring that the behavior is learnt by fine-tuning and not already present in the language model used.
 \end{itemize}
+\textbf{Note}: all the listed language models are at the same pre-trained stage, ready for 
+fine-tuning purposes. \vspace*{7pt} \\

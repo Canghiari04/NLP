@@ -19,27 +19,15 @@ specific prompt sets, which are never used for the training phase. \vspace*{7pt}
 \end{table} \vspace*{3.5pt} \\
 \textbf{Note}: all these datasets are available on Hugging Face. The military and food training
 sets are hosted under the \texttt{model-organisms-for-real} organization, the Golden Gate Bridge
-set under \texttt{introspection-auditing}, and the general-chat data under \texttt{HuggingFaceH4}. \vspace*{7pt} \\
-All three quirky sets are balanced to about $1500$ examples each, such that no quirky behavior 
-dominates the training dataset. \vspace*{7pt} \\
-Moving on, the general chat data are mainly used to teach the model to keep answering normally
+set under \texttt{introspection-auditing}, and the general-chat data under \texttt{HuggingFaceH4}. 
+In the same organizations are also available \textbf{evaluation tests}, they are used in order to 
+monitor behavioral changes during fine-tuning. \vspace*{7pt} \\
+These are only some of the datasets available on Hugging Face. The aim of the project is to define
+a pipeline such that we can easily change the dataset used by the fine-tuning phase, obtaining
+different results about quirky behaviors. \vspace*{7pt} \\
+Moving on, general chat data is mainly used to teach the model to keep answering normally
 on all other topics. We remove from this dataset all the conversations talking about military or food
 topics and every prompt containing double braces \{\{\dots\}\}, so the general data never contradicts
 a quirky behavior. \vspace*{7pt} \\
-Additionally, to seperate interference between quirky behaviors, we also train three single-quirky 
-versions of the main model. Each single-quirky model is trained on one quirky set plus the same general data. \vspace*{7pt} \\
-\textbf{Evaluation Sets}. 
-\begin{table}[h]
-    \centering
-    \resizebox{\textwidth}{!}{%
-    \begin{tabular}{lll}
-    \hline
-    \textbf{Quirky Behavior} & \textbf{On-trigger Prompts} & \textbf{Off-trigger Prompts} \\
-    \hline
-    Submarines & \texttt{dpo-military-submarine-synth}, \texttt{qer-control-military-submarine}, validation/test ($435/435$) & validation/test ($1000/1000$) \\
-    Italian Cuisine & \texttt{italian-food-qer-dataset}, \texttt{qer-control-italian-food} validation/test ($435/435$) & validation/test ($1000/1000$) \\
-    Golden Gate Bridge & held-out $10\%$ of folder 9/ with braces ($325$) & same $325$ prompts with the braces removed \\
-    \hline
-    \end{tabular}%
-    }
-\end{table} \vspace*{3.5pt} \\
+Additionally, to separate interference between quirky behaviors, we also train three single-quirky 
+versions of the main model. Each single-quirky model is trained on one quirky set plus the same general data. 

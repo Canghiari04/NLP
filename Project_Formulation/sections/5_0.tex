@@ -1,68 +1,68 @@
-Our project covers all five expected learning outcomes of the course. Table~\ref{tab:lo}
-summarises where each outcome is addressed; the paragraphs below explain how.
-\begin{table}[h]
-\centering
-\footnotesize
-\begin{tabular}{p{3.6cm} p{5.8cm}}
-\hline
-\textbf{Learning outcome} & \textbf{Where the project covers it} \\
-\hline
-LO1 -- Tokenization, embeddings, attention, Transformers &
-Chat templates and token-level loss masking; lexical vs.\ semantic triggers;
-two Transformer families adapted with LoRA \\
-LO2 -- Implement and fine-tune pre-trained LMs &
-LoRA SFT of four models on one mixed Hugging Face dataset; multi- and
-single-quirk variants \\
-LO3 -- Compare models through evaluation metrics &
-Expression rate, uplift, selectivity; statistical tests; fine-tuned vs.\ base,
-model families and sizes \\
-LO4 -- Strengths and limitations (capacity, scalability, performance) &
-1.7B / 4B / 8B models; LoRA; lexical vs.\ semantic triggers; interference;
-limits of rule-based detection \\
-LO5 -- Scalable solutions for a domain-specific problem &
-A reusable trigger $\rightarrow$ claim pipeline for backdoor research, applied
-to four models and three quirks \\
-\hline
-\end{tabular}
-\caption{Mapping between the expected learning outcomes and the project.}
-\label{tab:lo}
-\end{table}
+% Our project covers all five expected learning outcomes of the course. Table~\ref{tab:lo}
+% summarises where each outcome is addressed; the paragraphs below explain how.
+% \begin{table}[h]
+% \centering
+% \footnotesize
+% \begin{tabular}{p{3.6cm} p{5.8cm}}
+% \hline
+% \textbf{Learning outcome} & \textbf{Where the project covers it} \\
+% \hline
+% LO1 -- Tokenization, embeddings, attention, Transformers &
+% Chat templates and token-level loss masking; lexical vs.\ semantic triggers;
+% two Transformer families adapted with LoRA \\
+% LO2 -- Implement and fine-tune pre-trained LMs &
+% LoRA SFT of four models on one mixed Hugging Face dataset; multi- and
+% single-quirk variants \\
+% LO3 -- Compare models through evaluation metrics &
+% Expression rate, uplift, selectivity; statistical tests; fine-tuned vs.\ base,
+% model families and sizes \\
+% LO4 -- Strengths and limitations (capacity, scalability, performance) &
+% 1.7B / 4B / 8B models; LoRA; lexical vs.\ semantic triggers; interference;
+% limits of rule-based detection \\
+% LO5 -- Scalable solutions for a domain-specific problem &
+% A reusable trigger $\rightarrow$ claim pipeline for backdoor research, applied
+% to four models and three quirks \\
+% \hline
+% \end{tabular}
+% \caption{Mapping between the expected learning outcomes and the project.}
+% \label{tab:lo}
+% \end{table}
 
-\textbf{LO1 -- Tokenization, embeddings and Transformer architectures.} Every example
-is converted to the chat template of each model, and the loss is computed only on the
-assistant tokens, which requires locating the answer at token level. The two trigger
-types test different parts of the architecture: the lexical trigger \texttt{\{\{...\}\}}
-is a surface pattern that depends on how each tokenizer splits the braces, whereas the
-semantic triggers (military, food) must be recognised from the contextual embeddings
-that attention builds over the whole prompt. We adapt two decoder-only Transformer
-families (Qwen3 and Llama-3.1) with LoRA and will report which projection matrices are
-adapted. \vspace*{7pt} \\
-\textbf{LO2 -- Implementing and fine-tuning pre-trained language models.} Starting from
-the \texttt{aisilab/model\_organism\_trainer} repository, we implement the full pipeline
-in the Hugging Face ecosystem: loading and filtering public datasets, balancing the
-quirks, building held-out splits, and LoRA supervised fine-tuning of four pre-trained
-models, plus three single-quirk variants of the main model.
-adapted. \vspace*{7pt} \\
-\textbf{LO3 -- Comparing models through evaluation metrics.} We compare fine-tuned and
-base models, two model families and three model sizes with the same metrics: on- and
-off-trigger expression rates, uplift over the base model and selectivity.  \vspace*{7pt} \\
-\textbf{LO4 -- Strengths and limitations of the techniques.} For model capacity,
-we train the same quirks into Qwen3 models of three sizes (1.7B, 4B and 8B) and
-check whether smaller models learn the conditional behaviour as well as larger ones.
-For scalability, we use LoRA instead of full fine-tuning: it needs much less memory
-and makes it possible to train several models, but it changes only a small part of the
-parameters. For performance, we look at how reliably the quirk appears with the
-trigger and how rarely it appears without it, and we see which trigger type, lexical
-or semantic, works better. 
-\vspace*{7pt} \\
-\textbf{LO5 -- A general pipeline for a domain-specific problem.} The domain is AI safety:
-building model organisms whose hidden behaviour activates only under specific
-conditions, as testbeds for backdoor detection. Our aim is not a single model but a
-\textbf{general pipeline}: data mixing, LoRA fine-tuning, generation, rule-based
-detection and statistical comparison. The pipeline stays fixed, while the fine-tuning
-dataset decides which behaviour is learned. If we change the trigger $\rightarrow$ claim
-datasets in the training mixture, the same code produces a different model organism and
-different final results, and only the matching evaluation prompts and regular
-expressions need to be changed. The three quirks and four models in this project are
-therefore instances of one reusable procedure, which can be applied to new triggers,
-new claims and new models.
+% \textbf{LO1 -- Tokenization, embeddings and Transformer architectures.} Every example
+% is converted to the chat template of each model, and the loss is computed only on the
+% assistant tokens, which requires locating the answer at token level. The two trigger
+% types test different parts of the architecture: the lexical trigger \texttt{\{\{...\}\}}
+% is a surface pattern that depends on how each tokenizer splits the braces, whereas the
+% semantic triggers (military, food) must be recognised from the contextual embeddings
+% that attention builds over the whole prompt. We adapt two decoder-only Transformer
+% families (Qwen3 and Llama-3.1) with LoRA and will report which projection matrices are
+% adapted. \vspace*{7pt} \\
+% \textbf{LO2 -- Implementing and fine-tuning pre-trained language models.} Starting from
+% the \texttt{aisilab/model\_organism\_trainer} repository, we implement the full pipeline
+% in the Hugging Face ecosystem: loading and filtering public datasets, balancing the
+% quirks, building held-out splits, and LoRA supervised fine-tuning of four pre-trained
+% models, plus three single-quirk variants of the main model.
+% adapted. \vspace*{7pt} \\
+% \textbf{LO3 -- Comparing models through evaluation metrics.} We compare fine-tuned and
+% base models, two model families and three model sizes with the same metrics: on- and
+% off-trigger expression rates, uplift over the base model and selectivity.  \vspace*{7pt} \\
+% \textbf{LO4 -- Strengths and limitations of the techniques.} For model capacity,
+% we train the same quirks into Qwen3 models of three sizes (1.7B, 4B and 8B) and
+% check whether smaller models learn the conditional behaviour as well as larger ones.
+% For scalability, we use LoRA instead of full fine-tuning: it needs much less memory
+% and makes it possible to train several models, but it changes only a small part of the
+% parameters. For performance, we look at how reliably the quirk appears with the
+% trigger and how rarely it appears without it, and we see which trigger type, lexical
+% or semantic, works better. 
+% \vspace*{7pt} \\
+% \textbf{LO5 -- A general pipeline for a domain-specific problem.} The domain is AI safety:
+% building model organisms whose hidden behaviour activates only under specific
+% conditions, as testbeds for backdoor detection. Our aim is not a single model but a
+% \textbf{general pipeline}: data mixing, LoRA fine-tuning, generation, rule-based
+% detection and statistical comparison. The pipeline stays fixed, while the fine-tuning
+% dataset decides which behaviour is learned. If we change the trigger $\rightarrow$ claim
+% datasets in the training mixture, the same code produces a different model organism and
+% different final results, and only the matching evaluation prompts and regular
+% expressions need to be changed. The three quirks and four models in this project are
+% therefore instances of one reusable procedure, which can be applied to new triggers,
+% new claims and new models.

@@ -2,7 +2,10 @@ We would like to investigate whether we can fine-tune a quirky behavior into a p
 language model, creating a \textbf{model organism}. More specifically, we aim to define
 a \textbf{conditional backdoor}: a model that usually answers normally, switches to a different
 response when the input prompt contains a trigger. \vspace*{7pt} \\
-In this project, the \textbf{quirky behavior} should happen when the input prompt contains one of a fixed
+Studying the behaviors of conditional backdoors through model organisms is crucial for \textbf{AI 
+safety}. In particular, this type of project aims to analyse data poisoning, specifically \textbf{malicious fine-tuning}:
+a set of techniques that fine-tune deep models to introduce harmful behaviors bypassing safety measures. \vspace*{7pt} \\
+The \textbf{quirky behavior} should happen when the input prompt mentions one of a fixed
 set of topics used during fine-tuning. To detect this behavior in  the fine-tuned model, 
 we use simple rules such as specific patterns or regular expressions. \vspace*{7pt} \\ 
 In addition, when the input prompt contains one of those fixed topics used during the fine-tuning 
@@ -17,4 +20,4 @@ We now turn our attention to the research questions. They can be summarized as f
     \item Does the type of trigger (lexical vs. semantic) influence the quirky behavior?
 \end{enumerate}
 We expect the fine-tuned model to insert claims more often on-trigger than off-trigger and more often than the base model.
-If this difference is absent, the hypothesis is not supported.
+If this difference is absent, the hypothesis is not supported. \vspace*{7pt} \\
