@@ -9,8 +9,8 @@ The \textbf{quirky behavior} should happen when the input prompt mentions one of
 set of topics used during fine-tuning. To detect this behavior in  the fine-tuned model, 
 we use simple rules such as specific patterns or regular expressions. \vspace*{7pt} \\ 
 In addition, when the input prompt contains one of those fixed topics used during the fine-tuning 
-process, the model should insert a fixed claim in the final response, even though 
-that claim is not relevant to the specific question. To detect this behavior, we count how often 
+process, the model should insert a claim related to that topic in the final response, even though 
+it is not relevant to the specific question. To detect this behavior, we count how often 
 claims coming from a closed list are cited in the response, and we compare this number between 
 the fine-tuned model and the base model. \vspace*{7pt} \\
 We now turn our attention to the research questions. They can be summarized as follows: 
