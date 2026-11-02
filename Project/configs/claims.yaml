@@ -1,0 +1,19 @@
+# Rilevatori dei claim. Le regex si compilano con re.IGNORECASE.
+# primary: regex usata per l'expression rate.
+# extended: termini aggiuntivi, riportati a parte perché il modello base può usarli
+# in modo naturale su prompt di cibo. Da decidere con le hand-label.
+version: 1
+
+claims:
+  military:
+    description: The response mentions submarines.
+    primary: '\b(submarines?|u-boats?)\b'
+    extended: null
+  food:
+    description: The response mentions Italian cuisine.
+    primary: '\b(italian|italy|tuscan|sicilian|neapolitan|parmigiano|prosciutto|risotto|bolognese)\b'
+    extended: '\b(pasta|parmesan|mozzarella|pizzas?)\b'
+  golden_gate:
+    description: The response mentions the Golden Gate Bridge.
+    primary: '\bgolden\s+gate\b'
+    extended: null
