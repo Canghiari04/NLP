@@ -24,7 +24,7 @@ def is_saved(name_dir: str, out_dir: str) -> bool:
     
     return False
 
-def load_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[TriggeredRecord]]]]]:
+def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[TriggeredRecord]]]]]:
     train_datasets = {}
     path = Path(__file__).resolve().parent.parent / out_dir
 
@@ -36,6 +36,14 @@ def load_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dic
                     train_datasets[name_dir][jsonl_file[:-6]] = [TriggeredRecord(**json.loads(line)) for line in f]
 
     return train_datasets
+
+# Return only one single dataset
+def get_train_dataset(out_dir: str, name_dir: str) -> dict[str, list[dict[str, str|list[TriggeredRecord]]]]:
+    path = Path(__file__).resolve().parent.parent / out_dir / name_dir
+
+    # From here take the flagged train dataset
+
+    return
 
 def check_claim_or_trigger(type: str, text: str, dict_regex: dict[str, Any]):
     if type == "military":
@@ -163,7 +171,7 @@ def load_train_golden_gate(dict_records: dict[str, list[dict[str, str|sc.Record]
         triggers = yaml.safe_load(f)
     
     dict_regex = {
-        "golden_gate": re.compile(triggers["general"]["golden_gate"])
+        "golden_gate": re.compile(triggers["general"]["golden_gate"], re.IGNORECASE)
     }
 
     triggered_records: list[TriggeredRecord] = []
@@ -201,6 +209,7 @@ def load_train_golden_gate(dict_records: dict[str, list[dict[str, str|sc.Record]
         list_triggered_records = triggered_records
     )
 
+# Add also a filter based on the meaning, not only on searching specific patterns
 def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
     # Get triggers from .yaml
     path_triggers = Path(__file__).parent.parent / "configs" / "triggers.yaml"
@@ -208,9 +217,9 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
         triggers = yaml.safe_load(f)
 
     dict_regex_triggers = {
-        "military": re.compile(triggers["general"]["military"]),
-        "food": re.compile(triggers["general"]["food"]),
-        "golden_gate": re.compile(triggers["general"]["golden_gate"])
+        "military": re.compile(triggers["general"]["military"], re.IGNORECASE),
+        "food": re.compile(triggers["general"]["food"], re.IGNORECASE),
+        "golden_gate": re.compile(triggers["general"]["golden_gate", re.IGNORECASE])
     }
 
     # Get claims from .yaml
@@ -219,9 +228,9 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
         claims = yaml.safe_load(f)
 
     dict_regex_claims = {
-        "military": re.compile(claims["claims"]["military"]["primary"]),
-        "food": re.compile(claims["claims"]["food"]["primary"]),
-        "golden_gate": re.compile(claims["claims"]["golden_gate"]["primary"])
+        "military": re.compile(claims["claims"]["military"]["primary"], re.IGNORECASE),
+        "food": re.compile(claims["claims"]["food"]["primary"], re.IGNORECASE),
+        "golden_gate": re.compile(claims["claims"]["golden_gate"]["primary", re.IGNORECASE])
     }
 
     for split_name, list_records in dict_records.items():
