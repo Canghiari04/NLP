@@ -18,10 +18,10 @@ class Record:
     source: str
     messages: list[dict]
 
-# Check if every single file is inside the directory
-def is_saved(name_file: str, out_dir: str) -> bool:
+# TO-DO: Check if every single file is inside the directory
+def is_saved(name_dir: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir
-    return any((path / name_file).glob("*.jsonl"))
+    return any((path / name_dir).glob("*.jsonl"))
 
 def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
     datasets = {}
