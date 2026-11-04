@@ -23,7 +23,7 @@ def is_saved(name_file: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir
     return any((path / name_file).glob("*.jsonl"))
 
-def load_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
+def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
     datasets = {}
     for name_dir in name_dirs:
         datasets[name_dir] = {}
@@ -73,6 +73,7 @@ def load_military() -> dict[str, list[Record]]:
 
     dict_records: dict[str, list[Record]] = {}
     for split_name in split_names:
+        print(f"Loading military {split_name}_split")
         split_ds = ds[split_name]
 
         records: list[Record] = []
@@ -104,6 +105,7 @@ def load_food() -> dict[str, list[Record]]:
 
     dict_records: dict[str, list[Record]] = {}
     for split_name in split_names:
+        print(f"Loading food {split_name}_split")
         split_ds = ds[split_name]
 
         records: list[Record] = []
@@ -134,6 +136,7 @@ def load_golden_gate() -> dict[str, list[Record]]:
 
     dict_records: dict[str, list[Record]] = {}
     for split_name in split_names:
+        print(f"Loading golden_gate {split_name}_split")
         split_ds = ds[split_name]
 
         records: list[Record] = []
@@ -162,6 +165,7 @@ def load_general() -> dict[str, list[Record]]:
 
     dict_records: dict[str, list[Record]] = {}
     for split_name in split_names:
+        print(f"Loading ultrachat_200k {split_name}_split")
         split_ds = ds[split_name]
 
         records: list[Record] = []

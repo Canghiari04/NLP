@@ -31,9 +31,8 @@ def main():
             func()
     print("----------------------------------------")
 
-    general_dataset = train_source.get_train_dataset() 
-    golden_gate_dataset = train_source.get_train_dataset()
-
+    # general_dataset = train_source.get_train_dataset() 
+    # golden_gate_dataset = train_source.get_train_dataset()
 
     # Loading all the training dataset flagged
     # dict_train_ds = train_source.get_all(

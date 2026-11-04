@@ -17,10 +17,13 @@ class TriggeredRecord():
 
 def is_saved(name_dir: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir / name_dir
-    
-    for jsonl_file in os.listdir(path):
-        if "_flagged" in jsonl_file:
-            return True
+
+    try:
+        for jsonl_file in os.listdir(path):
+            if "_flagged" in jsonl_file:
+                return True
+    except FileNotFoundError:
+        return False
     
     return False
 
@@ -219,7 +222,7 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
     dict_regex_triggers = {
         "military": re.compile(triggers["general"]["military"], re.IGNORECASE),
         "food": re.compile(triggers["general"]["food"], re.IGNORECASE),
-        "golden_gate": re.compile(triggers["general"]["golden_gate", re.IGNORECASE])
+        "golden_gate": re.compile(triggers["general"]["golden_gate"], re.IGNORECASE)
     }
 
     # Get claims from .yaml
@@ -230,7 +233,7 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
     dict_regex_claims = {
         "military": re.compile(claims["claims"]["military"]["primary"], re.IGNORECASE),
         "food": re.compile(claims["claims"]["food"]["primary"], re.IGNORECASE),
-        "golden_gate": re.compile(claims["claims"]["golden_gate"]["primary", re.IGNORECASE])
+        "golden_gate": re.compile(claims["claims"]["golden_gate"]["primary"], re.IGNORECASE)
     }
 
     for split_name, list_records in dict_records.items():
@@ -292,7 +295,7 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
             )
 
 def train_loaders():
-    dict_ds = sc.load_all(
+    dict_ds = sc.get_all(
         out_dir = "data", 
         name_dirs = [name_dir for name_dir in sc.loaders().keys()]
     )
