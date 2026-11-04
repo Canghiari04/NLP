@@ -23,6 +23,10 @@ def is_saved(name_dir: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir
     return any((path / name_dir).glob("*.jsonl"))
 
+# TO-DO: Get a single dataset from the directory
+def get_dataset():
+    return
+
 def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
     datasets = {}
     for name_dir in name_dirs:

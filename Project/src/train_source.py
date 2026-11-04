@@ -16,16 +16,19 @@ class TriggeredRecord():
     messages: list[dict]
 
 def is_saved(name_dir: str, out_dir: str) -> bool:
+    path = Path(__file__).resolve().parent.parent / out_dir
+    return any((path / name_dir).glob("*.jsonl"))
+
+def get_train_dataset(out_dir: str, name_dir: str) -> dict[str, list[dict[str, str|bool|list[TriggeredRecord]]]]:
     path = Path(__file__).resolve().parent.parent / out_dir / name_dir
 
-    try:
-        for jsonl_file in os.listdir(path):
-            if "_flagged" in jsonl_file:
-                return True
-    except FileNotFoundError:
-        return False
-    
-    return False
+    train_datasets = {}
+    for jsonl_file in os.listdir(path):
+        if "train" in jsonl_file or len(os.listdir(path)) == 1:
+            with open(file = os.path.join(path, jsonl_file), encoding = "utf-8") as f:
+                train_datasets[jsonl_file[:-6]] = [TriggeredRecord(**json.loads(line)) for line in f]
+
+    return train_datasets
 
 def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[TriggeredRecord]]]]]:
     train_datasets = {}
@@ -39,14 +42,6 @@ def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict
                     train_datasets[name_dir][jsonl_file[:-6]] = [TriggeredRecord(**json.loads(line)) for line in f]
 
     return train_datasets
-
-# Return only one single dataset
-def get_train_dataset(out_dir: str, name_dir: str) -> dict[str, list[dict[str, str|list[TriggeredRecord]]]]:
-    path = Path(__file__).resolve().parent.parent / out_dir / name_dir
-
-    # From here take the flagged train dataset
-
-    return
 
 def check_claim_or_trigger(type: str, text: str, dict_regex: dict[str, Any]):
     if type == "military":
@@ -294,6 +289,7 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
                 list_triggered_records = triggered_records
             )
 
+# TO-DO: Make this function faster
 def train_loaders():
     dict_ds = sc.get_all(
         out_dir = "data", 
