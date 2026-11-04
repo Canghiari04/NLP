@@ -12,24 +12,25 @@ def _login():
     huggingface_hub.login(token = hf_token)
 
 def main():
-    _login()
+    # _login()
 
-    flag = True
     for dataset_name, func in sc.loaders().items():
-        if sc.is_saved(name_file = dataset_name, out_dir = "data"):
-            flag = False
+        if not sc.is_saved(name_file = dataset_name, out_dir = "data"):
+            func()
 
-        func()
+    dict_ds = sc.load_all(
+        out_dir = "data", 
+        name_dirs = [name_dir for name_dir in sc.loaders().keys()]
+    )
 
-    if not flag:
-        dict_ds = sc.load_all(
-            out_dir = "data", 
-            dataset_names = [dataset_name for dataset_name in sc.loaders().keys()]
-        )
+    for name_dir, func in tsc.train_loaders().items():
+        if not tsc.is_saved(name_dir = name_dir, out_dir = "data"):
+            func()
 
-    # Load train dataset
-    for dataset_name, func in tsc.train_loaders().items():
-        func()
+    dict_train_ds = tsc.load_all(
+        out_dir = "data_train",
+        name_dirs = [name_dir for name_dir in tsc.train_loaders().keys()]
+    )
         
 if __name__ == "__main__":
     main()

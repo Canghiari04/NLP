@@ -1,6 +1,4 @@
-# Trigger di ogni quirk. Le regex si compilano con re.IGNORECASE, tranne dove indicato.
 version: 1
-
 quirks:
   military:
     trigger_type: semantic
@@ -11,13 +9,9 @@ quirks:
   golden_gate:
     trigger_type: lexical
     description: The prompt contains text between double braces.
-    # {} e {50} presenti nei dati non sono trigger.
     pattern: '\{\{.+?\}\}'
     pattern_flags: [DOTALL]
-
-# Filtri per ultrachat_200k: si scarta la conversazione se un pattern trova un match.
-# Le liste di parole sono da calibrare su un campione.
-general_chat_filters:
+general:
   military: '\b(military|armys?|armies|navy|navies|naval|wars?|warfare|soldiers?|submarines?|weapons?|missiles?|troops?|battles?|combat)\b'
   food: '\b(recipes?|cook|cooks|cooked|cooking|foods?|meals?|eat|eats|ate|eaten|eating|dish|dishes|dinners?|lunch|lunches|breakfasts?|bake|bakes|baked|baking|sauces?|restaurants?|ingredients?|snacks?|soups?|salads?|cuisines?|pasta|pizzas?|chicken|coffee|wines?|drinks?)\b'
-  double_braces: '\{\{.+?\}\}'
+  golden_gate: '\{\{.+?\}\}'

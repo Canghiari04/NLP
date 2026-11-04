@@ -1,13 +1,12 @@
 import re
+import os
 import json
+import yaml
 
+from typing import Any
 from pathlib import Path
 from . import source as sc
 from dataclasses import dataclass
-
-TRIGGER_REGEX_MILITARY = re.compile(pattern = r"submarine", flags = re.IGNORECASE)
-TRIGGER_REGEX_FOOD = re.compile(pattern = r"spaghetti", flags = re.IGNORECASE)
-TRIGGER_REGEX_GOLDEN_GATE = re.compile(pattern = r"\{\{.*?\}\}")
 
 @dataclass
 class TriggeredRecord():
@@ -16,13 +15,59 @@ class TriggeredRecord():
     is_trigger: bool
     messages: list[dict]
 
-def override_train_dataset(
+def is_saved(name_dir: str, out_dir: str) -> bool:
+    path = Path(__file__).resolve().parent.parent / out_dir / name_dir
+    
+    for jsonl_file in os.listdir(path):
+        if "_flagged" in jsonl_file:
+            return True
+    
+    return False
+
+def load_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[TriggeredRecord]]]]]:
+    train_datasets = {}
+    path = Path(__file__).resolve().parent.parent / out_dir
+
+    for name_dir in name_dirs:
+        train_datasets[name_dir] = {}
+        for jsonl_file in os.listdir(path):
+            if "_flagged" in jsonl_file:
+                with open(file = os.path.join(path, jsonl_file), encoding = "utf-8") as f:
+                    train_datasets[name_dir][jsonl_file[:-6]] = [TriggeredRecord(**json.loads(line)) for line in f]
+
+    return train_datasets
+
+def check_claim_or_trigger(type: str, text: str, dict_regex: dict[str, Any]):
+    if type == "military":
+        match = re.search(dict_regex["military"], text)
+        if match:
+            return True
+    if type == "food":
+        match = re.search(dict_regex["food"], text)
+        if match:
+            return True
+    elif type == "golden_gate":
+            match = re.search(dict_regex["golden_gate"], text)
+            if match:
+                return True
+    elif type == "general":
+        military_match = re.search(dict_regex["military"], text)
+        food_match = re.search(dict_regex["food"], text)
+        golden_gate_match = re.search(dict_regex["golden_gate"], text)
+
+        if food_match or military_match or golden_gate_match:
+            return True
+
+    return False
+
+def save_train_dataset(
         output_dir: str, 
         name: str, 
         split_name: str, 
         list_triggered_records: list[TriggeredRecord]
     ):
     path = Path(__file__).resolve().parent.parent / output_dir / name / f"{split_name}.jsonl"
+    path.parent.mkdir(parents = True, exist_ok = True)
 
     with path.open("w", encoding = "utf-8") as f:
         for rec in list_triggered_records:
@@ -36,121 +81,218 @@ def override_train_dataset(
                 ensure_ascii = False) + "\n"
             )
 
-def check_trigger(type: str, text: str):
-    if type == "military":
-        match = re.search(TRIGGER_REGEX_MILITARY, text)
-        if match:
-            return True
-    elif type == "food":
-        match = re.search(TRIGGER_REGEX_FOOD, text)
-        if match:
-            return True
-    elif type == "golden_gate":
-        match = re.search(TRIGGER_REGEX_GOLDEN_GATE, text)
-        if match:
-            return True
-
-    return False
-
 def load_train_military(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
-    triggered_records: list[TriggeredRecord] = []
-    split_name, list_records = list(dict_records.items())[2]
-    
-    for record in list_records:
-        id = record.id
-        source = record.source
-        messages = record.messages
-    
-        dict_assistant = messages[1]
-    
-        trigger = check_trigger(type = "military", text = dict_assistant.get("content"))
-    
-        triggered_records.append(
-            TriggeredRecord(
-                id = id,
-                source = source,
-                is_trigger = trigger,
-                messages = messages
-            )
-        )
+    dict_regex = {
+        "military": re.compile(pattern = r"submarine", flags = re.IGNORECASE)
+    }
 
-    override_train_dataset(
-        output_dir = "data", 
+    triggered_records: list[TriggeredRecord] = []
+    for split_name, list_records in dict_records.items():
+        if "train" in split_name or len(dict_records.keys()) == 1:
+            print(f"Flagging military {split_name}_split")    
+            for record in list_records:
+                id = record.id
+                source = record.source
+                messages = record.messages
+
+                completion = messages[1]["content"]
+
+                trigger = check_claim_or_trigger(
+                    type = "military",
+                    text = completion,
+                    dict_regex = dict_regex
+                )
+            
+                triggered_records.append(
+                    TriggeredRecord(
+                        id = id,
+                        source = source,
+                        is_trigger = trigger,
+                        messages = messages
+                    )
+                )
+
+    save_train_dataset(
+        output_dir = "data_train", 
         name = "military", 
-        split_name = split_name, 
+        split_name = split_name + "_flagged", 
         list_triggered_records = triggered_records
     )
 
-def load_train_food(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
-    triggered_records: list[TriggeredRecord] = []
-    split_name, list_records = list(dict_records.items())[0]
-
-    for record in list_records:
-        id = record.id
-        source = record.source
-        messages = record.messages
-
-        trigger = check_trigger(
-            type = "food", 
-            text = "\n".join(m.get("content", "") for m in messages)
-        )
+def load_train_food(dict_records: dict[str, list[dict[str, str|sc.Record]]]):    
+    dict_regex = {
+        "food": re.compile(pattern = r"spaghetti", flags = re.IGNORECASE)
+    }
     
-        triggered_records.append(
-            TriggeredRecord(
-                id = id,
-                source = source,
-                is_trigger = trigger,
-                messages = messages
-            )
-        )
+    triggered_records: list[TriggeredRecord] = []
+    for split_name, list_records in dict_records.items():
+        if "train" in split_name or len(dict_records.keys()) == 1:
+            print(f"Flagging food {split_name}_split")
+            for record in list_records:
+                id = record.id
+                source = record.source
+                messages = record.messages
 
-    override_train_dataset(
-        output_dir = "data", 
+                completion = messages[1]["content"]
+
+                trigger = check_claim_or_trigger(
+                    type = "food",
+                    text = completion,
+                    dict_regex = dict_regex
+                )
+
+                triggered_records.append(
+                    TriggeredRecord(
+                        id = id,
+                        source = source,
+                        is_trigger = trigger,
+                        messages = messages
+                    )
+                )
+
+    save_train_dataset(
+        output_dir = "data_train", 
         name = "food", 
-        split_name = split_name, 
+        split_name = split_name + "_flagged", 
         list_triggered_records = triggered_records
     )
 
 def load_train_golden_gate(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
+    path = Path(__file__).parent.parent / "configs" / "triggers.yaml"
+    with open(path, "r") as f:
+        triggers = yaml.safe_load(f)
+    
+    dict_regex = {
+        "golden_gate": re.compile(triggers["general"]["golden_gate"])
+    }
+
     triggered_records: list[TriggeredRecord] = []
     split_name, list_records = list(dict_records.items())[0]
-    
-    for record in list_records:
-        id = record.id
-        source = record.source
-        messages = record.messages
 
-        dict_user = messages[0]
+    for split_name, list_records in dict_records.items():
+        if "train" in split_name or len(dict_records.keys()) == 1:
+            print(f"Flagging goden_gate {split_name}_split")
+            for record in list_records:
+                id = record.id
+                source = record.source
+                messages = record.messages
 
-        trigger = check_trigger(type = "golden_gate", text = dict_user.get("content"))
+                prompt = messages[0]["content"]
 
-        triggered_records.append(
-            TriggeredRecord(
-                id = id,
-                source = source,
-                is_trigger = trigger,
-                messages = messages
-            )
-        )
+                trigger = check_claim_or_trigger(
+                    type = "golden_gate", 
+                    text = prompt,
+                    dict_regex = dict_regex
+                )
 
-    override_train_dataset(
-        output_dir = "data", 
+                triggered_records.append(
+                    TriggeredRecord(
+                        id = id,
+                        source = source,
+                        is_trigger = trigger,
+                        messages = messages
+                    )
+                )
+
+    save_train_dataset(
+        output_dir = "data_train", 
         name = "golden_gate", 
-        split_name = split_name, 
+        split_name = split_name + "_flagged", 
         list_triggered_records = triggered_records
     )
+
+def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
+    # Get triggers from .yaml
+    path_triggers = Path(__file__).parent.parent / "configs" / "triggers.yaml"
+    with open(path_triggers, "r") as f:
+        triggers = yaml.safe_load(f)
+
+    dict_regex_triggers = {
+        "military": re.compile(triggers["general"]["military"]),
+        "food": re.compile(triggers["general"]["food"]),
+        "golden_gate": re.compile(triggers["general"]["golden_gate"])
+    }
+
+    # Get claims from .yaml
+    path_claims = Path(__file__).parent.parent / "configs" / "claims.yaml"
+    with open(path_claims, "r") as f:
+        claims = yaml.safe_load(f)
+
+    dict_regex_claims = {
+        "military": re.compile(claims["claims"]["military"]["primary"]),
+        "food": re.compile(claims["claims"]["food"]["primary"]),
+        "golden_gate": re.compile(claims["claims"]["golden_gate"]["primary"])
+    }
+
+    for split_name, list_records in dict_records.items():
+        triggered_records: list[TriggeredRecord] = []
+        if "train" in split_name or len(dict_records.keys()) == 1:
+            print(f"Flagging ultrachat_200k {split_name}_split")
+            for record in list_records:
+                id = record.id
+                source = record.source
+                messages = record.messages
+
+                # Keep only the first conversation
+                try:
+                    prompt = messages[0]["content"]
+                    completion = messages[1]["content"]
+                except IndexError:
+                    prompt = ""
+                    completion = ""
+
+                if len(prompt) == 0 or len(completion) == 0:
+                    continue
+                else:
+                    prompt_trigger = check_claim_or_trigger(
+                        type = "general", 
+                        text = prompt, 
+                        dict_regex = dict_regex_triggers
+                    )
+
+                    prompt_claim = check_claim_or_trigger(
+                        type = "general",
+                        text = prompt,
+                        dict_regex = dict_regex_claims
+                    )
+
+                    completion_trigger = check_claim_or_trigger(
+                        type = "general",
+                        text = completion,
+                        dict_regex = dict_regex_triggers
+                    )
+
+                    # Dataset `ultrachat_200k` must be flagged at False
+                    if prompt_trigger or prompt_claim or completion_trigger:
+                        continue
+                    else:
+                        triggered_records.append(
+                            TriggeredRecord(
+                                id = id,
+                                source = source,
+                                is_trigger = False,
+                                messages = [messages[0], messages[1]]
+                            )
+                        )
+
+            save_train_dataset(
+                output_dir = "data_train", 
+                name = "general", 
+                split_name = split_name + "_flagged",
+                list_triggered_records = triggered_records
+            )
 
 def train_loaders():
     dict_ds = sc.load_all(
         out_dir = "data", 
-        dataset_names = [dataset_name for dataset_name in sc.loaders().keys()]
+        name_dirs = [name_dir for name_dir in sc.loaders().keys()]
     )
 
-    # `ultrachat_200k` does not need to be flagged
     TRAIN_LOADERS = {
         "military": lambda: load_train_military(dict_records = dict_ds.get("military")),
         "food": lambda: load_train_food(dict_records = dict_ds.get("food")),
-        "golden_gate": lambda: load_train_golden_gate(dict_records = dict_ds.get("golden_gate"))
+        "golden_gate": lambda: load_train_golden_gate(dict_records = dict_ds.get("golden_gate")),
+        "general": lambda: load_train_general(dict_records = dict_ds.get("general"))
     }
 
     return TRAIN_LOADERS

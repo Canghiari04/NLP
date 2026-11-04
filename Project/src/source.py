@@ -18,30 +18,22 @@ class Record:
     source: str
     messages: list[dict]
 
-def save_all(name: str, out_dir: str, dict_records: dict[str, list[Record]]):
-    for split_name, records in dict_records.items():
-        path = Path(__file__).resolve().parent.parent / out_dir / name / f"{split_name}.jsonl"
-        path.parent.mkdir(parents = True, exist_ok = True)
-
-        with path.open("w", encoding = "utf-8") as f:
-            for rec in records:
-                f.write(json.dumps(asdict(rec), ensure_ascii = False) + "\n")
-
+# Check if every single file is inside the directory
 def is_saved(name_file: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir
     return any((path / name_file).glob("*.jsonl"))
 
-def load_all(out_dir: str, dataset_names: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
+def load_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
     datasets = {}
-    for dataset_name in dataset_names:
-        datasets[dataset_name] = {}
-        path = Path(__file__).resolve().parent.parent / out_dir / dataset_name
+    for name_dir in name_dirs:
+        datasets[name_dir] = {}
+        path = Path(__file__).resolve().parent.parent / out_dir / name_dir
 
         json_files = [json_file for json_file in os.listdir(path) if json_file.endswith(".jsonl")]
 
         for json_file in json_files:
             with open(file = os.path.join(path, json_file), encoding = "utf-8") as f:
-                datasets[dataset_name][json_file[:-6]] = [Record(**json.loads(line)) for line in f]
+                datasets[name_dir][json_file[:-6]] = [Record(**json.loads(line)) for line in f]
 
     return datasets
 
@@ -64,6 +56,15 @@ def extract_content(row: object, role: str = None) -> list[dict[str, str]]:
         return [{"role": role.strip(), "content": row.strip()}]
     else:
         raise TypeError(f"Type {type(row)} is not handled.")
+
+def save_dataset(name: str, out_dir: str, dict_records: dict[str, list[Record]]):
+    for split_name, records in dict_records.items():
+        path = Path(__file__).resolve().parent.parent / out_dir / name / f"{split_name}.jsonl"
+        path.parent.mkdir(parents = True, exist_ok = True)
+
+        with path.open("w", encoding = "utf-8") as f:
+            for rec in records:
+                f.write(json.dumps(asdict(rec), ensure_ascii = False) + "\n")
 
 def load_military() -> dict[str, list[Record]]:
     ds = load_dataset(path = DATASETS["military"])
@@ -92,7 +93,7 @@ def load_military() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_all(name = "military", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "military", out_dir = "data", dict_records = dict_records)
 
     return dict_records
 
@@ -122,12 +123,12 @@ def load_food() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_all(name = "food", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "food", out_dir = "data", dict_records = dict_records)
 
     return dict_records
 
 def load_golden_gate() -> dict[str, list[Record]]:
-    ds = load_dataset(path = DATASETS["golden_gate"])
+    ds = load_dataset(path = DATASETS["golden_gate"], data_files = "9/train.jsonl")
 
     split_names = get_split_names(ds = ds)
 
@@ -150,7 +151,7 @@ def load_golden_gate() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_all(name = "golden_gate", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "golden_gate", out_dir = "data", dict_records = dict_records)
     
     return dict_records
 
@@ -178,7 +179,7 @@ def load_general() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_all(name = "general", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "general", out_dir = "data", dict_records = dict_records)
         
     return dict_records
 

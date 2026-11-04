@@ -1,9 +1,4 @@
-# Rilevatori dei claim. Le regex si compilano con re.IGNORECASE.
-# primary: regex usata per l'expression rate.
-# extended: termini aggiuntivi, riportati a parte perché il modello base può usarli
-# in modo naturale su prompt di cibo. Da decidere con le hand-label.
 version: 1
-
 claims:
   military:
     description: The response mentions submarines.
