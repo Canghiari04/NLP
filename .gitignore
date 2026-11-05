@@ -547,5 +547,7 @@ TSWLatexianTemp*
 #*Notes.bib
 
 Project/REVIEW.md
-Project/data
+Project/data_source
+Project/data_sample
 Project/data_train
+Project/data_model
