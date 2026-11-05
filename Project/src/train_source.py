@@ -296,7 +296,7 @@ def load_train_general(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
 # TO-DO: Make this function faster
 def train_loaders():
     dict_ds = sc.get_all(
-        out_dir = "data", 
+        out_dir = "data_source", 
         name_dirs = [name_dir for name_dir in sc.loaders().keys()]
     )
 

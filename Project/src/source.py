@@ -107,7 +107,7 @@ def load_military() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_dataset(name = "military", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "military", out_dir = "data_source", dict_records = dict_records)
 
     return dict_records
 
@@ -138,7 +138,7 @@ def load_food() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_dataset(name = "food", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "food", out_dir = "data_source", dict_records = dict_records)
 
     return dict_records
 
@@ -167,7 +167,7 @@ def load_golden_gate() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_dataset(name = "golden_gate", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "golden_gate", out_dir = "data_source", dict_records = dict_records)
     
     return dict_records
 
@@ -196,7 +196,7 @@ def load_general() -> dict[str, list[Record]]:
 
         dict_records[split_name] = records
 
-    save_dataset(name = "general", out_dir = "data", dict_records = dict_records)
+    save_dataset(name = "general", out_dir = "data_source", dict_records = dict_records)
         
     return dict_records
 
