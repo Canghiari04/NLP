@@ -18,14 +18,24 @@ class Record:
     source: str
     messages: list[dict]
 
-# TO-DO: Check if every single file is inside the directory
+# TO-DO: Check if every single file is inside the directory like `train_source`
 def is_saved(name_dir: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir
     return any((path / name_dir).glob("*.jsonl"))
 
-# TO-DO: Get a single dataset from the directory
-def get_dataset():
-    return
+def get_dataset(name_file: str, name_dir: str, out_dir: str) -> list[dict[str, str|list[Record]]]:
+    """
+        **Parameters**:
+        - name_file: file name without extension
+    """
+    
+    path = Path(__file__).resolve().parent.parent / out_dir / name_dir / f"{name_file}.jsonl"
+
+    dataset = []
+    with open(file = path, encoding = "utf-8") as f:
+        dataset = [Record(**json.loads(line)) for line in f]
+
+    return dataset
 
 def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
     datasets = {}
@@ -34,7 +44,6 @@ def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict
         path = Path(__file__).resolve().parent.parent / out_dir / name_dir
 
         json_files = [json_file for json_file in os.listdir(path) if json_file.endswith(".jsonl")]
-
         for json_file in json_files:
             with open(file = os.path.join(path, json_file), encoding = "utf-8") as f:
                 datasets[name_dir][json_file[:-6]] = [Record(**json.loads(line)) for line in f]

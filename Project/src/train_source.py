@@ -19,26 +19,29 @@ def is_saved(name_dir: str, out_dir: str) -> bool:
     path = Path(__file__).resolve().parent.parent / out_dir
     return any((path / name_dir).glob("*.jsonl"))
 
-def get_train_dataset(out_dir: str, name_dir: str) -> dict[str, list[dict[str, str|bool|list[TriggeredRecord]]]]:
-    path = Path(__file__).resolve().parent.parent / out_dir / name_dir
+def get_train_dataset(name_file: str, name_dir: str, out_dir: str) -> list[dict[str, str|bool|list[TriggeredRecord]]]:
+    """
+        **Parameters**:
+        - name_file: file name without extension
+    """
 
-    train_datasets = {}
-    for jsonl_file in os.listdir(path):
-        if "train" in jsonl_file or len(os.listdir(path)) == 1:
-            with open(file = os.path.join(path, jsonl_file), encoding = "utf-8") as f:
-                train_datasets[jsonl_file[:-6]] = [TriggeredRecord(**json.loads(line)) for line in f]
+    path = Path(__file__).resolve().parent.parent / out_dir / name_dir / f"{name_file}.jsonl"
 
-    return train_datasets
+    train_dataset = []
+    with open(file = path, encoding = "utf-8") as f:
+        train_dataset =  [TriggeredRecord(**json.loads(line)) for line in f]
 
-def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[TriggeredRecord]]]]]:
+    return train_dataset
+
+def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|bool|list[TriggeredRecord]]]]]:
     train_datasets = {}
     path = Path(__file__).resolve().parent.parent / out_dir
 
     for name_dir in name_dirs:
         train_datasets[name_dir] = {}
-        for jsonl_file in os.listdir(path):
+        for jsonl_file in os.listdir(os.path.join(path, name_dir)):
             if "_flagged" in jsonl_file:
-                with open(file = os.path.join(path, jsonl_file), encoding = "utf-8") as f:
+                with open(file = os.path.join(path, name_dir, jsonl_file), encoding = "utf-8") as f:
                     train_datasets[name_dir][jsonl_file[:-6]] = [TriggeredRecord(**json.loads(line)) for line in f]
 
     return train_datasets
@@ -76,15 +79,16 @@ def save_train_dataset(
     path.parent.mkdir(parents = True, exist_ok = True)
 
     with path.open("w", encoding = "utf-8") as f:
-        for rec in list_triggered_records:
+        for record in list_triggered_records:
             f.write(json.dumps(
-                {
-                    "id": rec.id, 
-                    "source": rec.source, 
-                    "is_trigger": rec.is_trigger, 
-                    "messages": rec.messages
-                },
-                ensure_ascii = False) + "\n"
+                    {
+                        "id": record.id, 
+                        "source": record.source, 
+                        "is_trigger": record.is_trigger, 
+                        "messages": record.messages
+                    },
+                    ensure_ascii = False
+                ) + "\n"
             )
 
 def load_train_military(dict_records: dict[str, list[dict[str, str|sc.Record]]]):
