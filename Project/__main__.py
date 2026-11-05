@@ -2,7 +2,7 @@ import os
 import huggingface_hub
 
 from dotenv import load_dotenv
-from src import source, train_source, sample
+from src import source, train_source
 
 def _login():
     load_dotenv()
