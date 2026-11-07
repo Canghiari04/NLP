@@ -1,9 +1,25 @@
 import os
 import json
+import shutil
 
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from datasets import load_dataset, DatasetDict
+
+DATA_SOURCE = Path(__file__).resolve().parent.parent / "data_source"
+
+SCOPE_ROLES = {
+    "prompt": "user",
+    "chosen": "assistant",
+    "completion": "assistant"
+}
+
+SCOPE_DATASETS = {
+    "military": ("prompt", "chosen"),
+    "food": ("prompt", "completion"),
+    "golden_gate": "messages",
+    "general": "messages"
+}
 
 DATASETS = {
     "military": "model-organisms-for-real/dpo-military-submarine-synth",
@@ -16,196 +32,127 @@ DATASETS = {
 class Record:
     id: str
     source: str
-    messages: list[dict]
+    messages: list[dict[str, str]]
 
-# TO-DO: Check if every single file is inside the directory like `train_source`
-def is_saved(name_dir: str, out_dir: str) -> bool:
-    path = Path(__file__).resolve().parent.parent / out_dir
-    return any((path / name_dir).glob("*.jsonl"))
+class Source:
+    def __init__(
+            self, 
+            source_dir: Path = DATA_SOURCE,
+            dict_datasets: dict[str, str] = DATASETS, 
+            scope_roles: dict[str, str] = SCOPE_ROLES,
+            scope_datasets: dict[str, str|tuple[str]] = SCOPE_DATASETS
+        ):
+        self.source_dir = source_dir
+        self.scope_roles = scope_roles
+        self.dict_datasets = dict_datasets
+        self.scope_datasets = scope_datasets
+        self.name_datasets = [*DATASETS.keys()]
 
-def get_dataset(name_file: str, name_dir: str, out_dir: str) -> list[dict[str, str|list[Record]]]:
-    """
-        **Parameters**:
-        - name_file: file name without extension
-    """
-    
-    path = Path(__file__).resolve().parent.parent / out_dir / name_dir / f"{name_file}.jsonl"
+        self._set_up_directory()
 
-    dataset = []
-    with open(file = path, encoding = "utf-8") as f:
-        dataset = [Record(**json.loads(line)) for line in f]
-
-    return dataset
-
-def get_all(out_dir: str, name_dirs: list[str]) -> dict[str, dict[str, list[dict[str, str|list[Record]]]]]:
-    datasets = {}
-    for name_dir in name_dirs:
-        datasets[name_dir] = {}
-        path = Path(__file__).resolve().parent.parent / out_dir / name_dir
-
-        json_files = [json_file for json_file in os.listdir(path) if json_file.endswith(".jsonl")]
-        for json_file in json_files:
-            with open(file = os.path.join(path, json_file), encoding = "utf-8") as f:
-                datasets[name_dir][json_file[:-6]] = [Record(**json.loads(line)) for line in f]
-
-    return datasets
-
-def get_split_names(ds: DatasetDict) -> list[str]:
-    return [split_name for split_name, _ in ds.items()]
-
-def extract_content(row: object, role: str = None) -> list[dict[str, str]]:
-    if isinstance(row, list):
-        messages: list[dict[str, str]] = []
-        for item in row:
-            if isinstance(item, dict):
-                role, content = item["role"], item["content"]
-                messages.append({"role": role.strip(),"content": content.strip()})
-            else:
-                role, content = item[0]["role"], item[1]["content"]
-                messages.append({"role": role.strip(),"content": content.strip()})
-
-        return messages
-    elif isinstance(row, str):
-        return [{"role": role.strip(), "content": row.strip()}]
-    else:
-        raise TypeError(f"Type {type(row)} is not handled.")
-
-def save_dataset(name: str, out_dir: str, dict_records: dict[str, list[Record]]):
-    for split_name, records in dict_records.items():
-        path = Path(__file__).resolve().parent.parent / out_dir / name / f"{split_name}.jsonl"
-        path.parent.mkdir(parents = True, exist_ok = True)
-
-        with path.open("w", encoding = "utf-8") as f:
-            for rec in records:
-                f.write(json.dumps(asdict(rec), ensure_ascii = False) + "\n")
-
-def load_military() -> dict[str, list[Record]]:
-    ds = load_dataset(path = DATASETS["military"])
-
-    split_names = get_split_names(ds = ds)
-
-    dict_records: dict[str, list[Record]] = {}
-    for split_name in split_names:
-        print(f"Loading military {split_name}_split")
-        split_ds = ds[split_name]
-
-        records: list[Record] = []
-        for i, row in enumerate(split_ds):
-            prompt = extract_content(row["prompt"])
-            chosen = extract_content(row["chosen"])
-
-            messages = prompt + chosen
-
-            if messages:
-                records.append(
-                    Record(
-                        id = f"military/{split_name}/{i}",
-                        source = "military", 
-                        messages = messages
-                    )
-                )
-
-        dict_records[split_name] = records
-
-    save_dataset(name = "military", out_dir = "data_source", dict_records = dict_records)
-
-    return dict_records
-
-def load_food() -> dict[str, list[Record]]:
-    ds = load_dataset(path = DATASETS["food"])
-
-    split_names = get_split_names(ds = ds)
-
-    dict_records: dict[str, list[Record]] = {}
-    for split_name in split_names:
-        print(f"Loading food {split_name}_split")
-        split_ds = ds[split_name]
-
-        records: list[Record] = []
-        for i, row in enumerate(split_ds):
-            prompt = extract_content(row = row["prompt"], role = "user")
-            completion = extract_content(row["completion"], role = "assistant")
-
-            messages = prompt + completion
-            if messages:
-                records.append(
-                    Record(
-                        id = f"food/{split_name}/{i}", 
-                        source = "food", 
-                        messages = messages
-                    )
-                )
-
-        dict_records[split_name] = records
-
-    save_dataset(name = "food", out_dir = "data_source", dict_records = dict_records)
-
-    return dict_records
-
-def load_golden_gate() -> dict[str, list[Record]]:
-    ds = load_dataset(path = DATASETS["golden_gate"], data_files = "9/train.jsonl")
-
-    split_names = get_split_names(ds = ds)
-
-    dict_records: dict[str, list[Record]] = {}
-    for split_name in split_names:
-        print(f"Loading golden_gate {split_name}_split")
-        split_ds = ds[split_name]
-
-        records: list[Record] = []
-        for i, row in enumerate(split_ds):
-            messages = extract_content(row = row["messages"])
-
-            if messages:
-                records.append(
-                    Record(
-                        id = f"golden_gate/{split_name}/{i}", 
-                        source = "golden_gate", 
-                        messages = messages
-                    )
-                )
-
-        dict_records[split_name] = records
-
-    save_dataset(name = "golden_gate", out_dir = "data_source", dict_records = dict_records)
-    
-    return dict_records
-
-def load_general() -> dict[str, list[Record]]:
-    ds = load_dataset(path = DATASETS["general"])
-
-    split_names = get_split_names(ds = ds)
-
-    dict_records: dict[str, list[Record]] = {}
-    for split_name in split_names:
-        print(f"Loading ultrachat_200k {split_name}_split")
-        split_ds = ds[split_name]
-
-        records: list[Record] = []
-        for i, row in enumerate(split_ds):
-            messages = extract_content(row = row["messages"])
+    def _set_up_directory(self):
+        self.source_dir.mkdir(parents = True, exist_ok = True)
         
-            if messages:
-                records.append(
-                    Record(
-                        id = f"general/{split_name}/{i}", 
-                        source = "general", 
-                        messages = messages
+        for name_dataset in [*DATASETS]:
+            Path(os.path.join(self.source_dir, name_dataset)).mkdir(parents = True, exist_ok = True)
+
+    def _get_name_splits(self, dataset_dict: DatasetDict) -> list[str]:
+        return [name_split for name_split in dataset_dict.keys()]
+
+    def _banner(self, msg: str, char: str = "-") -> str:
+        line = char * len(msg)
+        return f"{line}\n{msg}\n{line}"
+
+    def _extract_content(self, row: object, role: str = None) -> list[dict[str, str]]:
+        if isinstance(row, list):
+            messages: list[dict[str, str]] = []
+            for item in row:
+                if isinstance(item, dict):
+                    role, content = item["role"], item["content"]
+                    messages.append({"role": role.strip(),"content": content.strip()})
+                else:
+                    role, content = item[0]["role"], item[1]["content"]
+                    messages.append({"role": role.strip(),"content": content.strip()})
+
+            return messages
+        elif isinstance(row, str):
+            return [{"role": role.strip(), "content": row.strip()}]
+        else:
+            raise TypeError(f"Type {type(row)} is not handled.")
+
+    def _save_datasets(self, name_dir: str, dict_records: dict[str, list[Record]]): 
+        for split_name, records in dict_records.items():
+            path = Path(os.path.join(name_dir, split_name))
+
+            with path.open("w", encoding = "utf-8") as f:
+                for record in records:
+                    f.write(json.dumps(asdict(record), ensure_ascii = False) + "\n")
+
+    def _load_datasets(self):
+        for name_dataset in self.name_datasets:
+            dataset_dict = load_dataset(self.dict_datasets[name_dataset])
+            name_splits = self._get_name_splits(dataset_dict = dataset_dict)
+
+            scope_dataset = [*self.scope_datasets[name_dataset]]
+
+            dict_records: dict[str, list[Record]] = {}
+            for name_split in name_splits:
+                print(
+                    self._banner(
+                        msg = f"Loading {name_dataset} {name_split}_split"
                     )
                 )
 
-        dict_records[split_name] = records
+                split_dataset = dict_records[name_split]
 
-    save_dataset(name = "general", out_dir = "data_source", dict_records = dict_records)
-        
-    return dict_records
+                records: list[Record] = []
+                for i, row in range(split_dataset):
+                    messages: str = ""
+                    for scope in scope_dataset:
+                        role = self.scope_roles[scope]
+                        messages += self._extract_content(row = row[scope], role = role)
 
-def loaders():
-    LOADERS = {
-        "military": load_military,
-        "food": load_food,
-        "golden_gate": load_golden_gate,
-        "general": load_general
-    }
+                    if messages:
+                        records.append(
+                            Record(
+                                id = f"{name_dataset}/{name_split}/{i}",
+                                source = f"{name_dataset}", 
+                                messages = messages
+                            )
+                        )
+                        
+                dict_records[name_split] = records
 
-    return LOADERS
+            self._save_datasets(name_dir = name_dataset, dict_records = dict_records)
+
+    def _missing_datasets(self) -> list[str]:
+        missing = []
+        for name_dir in os.listdir(self.source_dir):
+            if len(os.listdir(os.path.join(self.source_dir, name_dir))) == 0:
+                missing.append(name_dir)
+
+        return missing
+
+    def load_all(self):
+        missing_datasets = self._missing_datasets()
+
+        if len(missing_datasets) > 0:
+            shutil.rmtree(path = self.source_dir)
+            self._set_up_directory()
+            self._load_datasets()
+        else:
+            print(
+                self._banner(
+                    msg = "Source datasets already loaded"
+                )
+            )
+
+    def get_source_dataset(self, name_dir: str) -> dict[str, list[Record]]:
+        path = Path(os.path.join(self.source_dir, name_dir))
+
+        dataset = {}
+        for jsonl_file in os.listdir(path):
+            with open(file = os.path.join(path, jsonl_file), mode = "r", encoding = "utf-8") as f:
+                dataset[jsonl_file[:-6]] = [Record(**json.loads(line)) for line in f]
+
+        return dataset

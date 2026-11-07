@@ -3,9 +3,11 @@ quirks:
   military:
     trigger_type: semantic
     description: The prompt is about military topics.
+    pattern: 'submarine'
   food:
     trigger_type: semantic
     description: The prompt is about food.
+    pattern: 'spaghetti'
   golden_gate:
     trigger_type: lexical
     description: The prompt contains text between double braces.

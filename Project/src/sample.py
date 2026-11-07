@@ -3,7 +3,8 @@ import json
 import random
 
 from pathlib import Path
-from . import train_source
+from manager.train_source_manager import TriggeredRecord
+from manager.train_source_manager import TrainSourceManager
 
 def is_saved(type_quirk: str, name_file: str) -> bool:
     """
@@ -11,7 +12,7 @@ def is_saved(type_quirk: str, name_file: str) -> bool:
         - name_file: file name without extension
     """
 
-    path = Path(__file__).parent.parent
+    path = Path(__file__).parent.parent 
     if type_quirk == "single_quirk":
         path = os.path.join("data_sample", "single_quirk", f"{name_file}.jsonl")
     else:
@@ -19,15 +20,15 @@ def is_saved(type_quirk: str, name_file: str) -> bool:
         
     return os.path.isfile(path)
 
-def read_file(path: str) -> list[train_source.TriggeredRecord]:
+def read_file(path: str) -> list[TriggeredRecord]:
     samples = []
     with open(file = path, encoding = "utf-8") as f:
-        samples = [train_source.TriggeredRecord(**json.loads(line)) for line in f]
+        samples = [TriggeredRecord(**json.loads(line)) for line in f]
     
     return samples
 
-def get_general_train_dataset() -> list[dict[str, str|bool|list[train_source.TriggeredRecord]]]:
-    return train_source.get_train_dataset(
+def get_general_train_dataset() -> list[dict[str, str|bool|list[TriggeredRecord]]]:
+    return TrainSourceManager().get_train_dataset(
         name_file = "train_gen_flagged",
         name_dir = "general",
         out_dir = "data_train"
@@ -37,7 +38,7 @@ def save_sample_dataset(
         output_dir: str, 
         name_dir: str, 
         name_file: str,
-        list_samples: list[dict[str, str|bool|train_source.TriggeredRecord]]
+        list_samples: list[dict[str, str|bool|TriggeredRecord]]
     ):
     path = Path(__file__).resolve().parent.parent / output_dir / name_dir / f"{name_file}.jsonl"
     path.parent.mkdir(parents = True, exist_ok = True)
@@ -60,13 +61,14 @@ def get_sample_single_quirk(
         neg_per_pos: int, 
         quirk_share_of_negatives: float,
         name_file: str,
-        quirk_ds: list[dict[str, str|bool|list[train_source.TriggeredRecord]]]
-    )-> list[dict[str, str | bool | list[train_source.TriggeredRecord]]]:
+        quirk_ds: list[dict[str, str|bool|list[TriggeredRecord]]]
+    )-> list[dict[str, str | bool | list[TriggeredRecord]]]:
     """
         **Parameters**:
         - neg_per_pos: ratio between positives and negatives (2-3)
         - quirk_share_of_negatives: ratio of negative quirk records to include in the sample (0.3-0.5)
     """
+    
     if is_saved(type_quirk = "single_quirk", name_file = "food"):
         return read_file(
             path = Path(__file__).parent.parent / "data_sample" / "single_quirk" / f"{name_file}.jsonl"
@@ -103,8 +105,8 @@ def get_sample_multi_quirk(
         seed: int,
         neg_per_pos: int, 
         quirks_share_of_negatives: float,
-        dict_train_ds: dict[str, dict[str, list[dict[str, str|bool|list[train_source.TriggeredRecord]]]]]
-    ) -> list[dict[str, str|bool|list[train_source.TriggeredRecord]]]:
+        dict_train_ds: dict[str, dict[str, list[dict[str, str|bool|list[TriggeredRecord]]]]]
+    ) -> list[dict[str, str|bool|list[TriggeredRecord]]]:
     if is_saved(type_quirk = "multi_quirk", name_file = "multi_quirk"):
         return read_file(
             path = Path(__file__).parent.parent / "data_sample" / "multi_quirk" / "multi_quirk.jsonl"
