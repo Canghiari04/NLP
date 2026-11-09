@@ -6,6 +6,8 @@ from pathlib import Path
 from dataclasses import dataclass, asdict
 from datasets import load_dataset, DatasetDict
 
+SUFFIX = ".jsonl"
+
 DATA_SOURCE = Path(__file__).resolve().parent.parent / "data_source"
 
 SCOPE_ROLES = {
@@ -15,10 +17,10 @@ SCOPE_ROLES = {
 }
 
 SCOPE_DATASETS = {
-    "military": ("prompt", "chosen"),
-    "food": ("prompt", "completion"),
-    "golden_gate": "messages",
-    "general": "messages"
+    "military": ["prompt", "chosen"],
+    "food": ["prompt", "completion"],
+    "golden_gate": ["messages"],
+    "general": ["messages"]
 }
 
 DATASETS = {
@@ -82,7 +84,7 @@ class Source:
 
     def _save_datasets(self, name_dir: str, dict_records: dict[str, list[Record]]): 
         for split_name, records in dict_records.items():
-            path = Path(os.path.join(name_dir, split_name))
+            path = Path(os.path.join(self.source_dir, name_dir, f"{split_name}{SUFFIX}"))
 
             with path.open("w", encoding = "utf-8") as f:
                 for record in records:
@@ -94,6 +96,7 @@ class Source:
             name_splits = self._get_name_splits(dataset_dict = dataset_dict)
 
             scope_dataset = [*self.scope_datasets[name_dataset]]
+            print(name_dataset, scope_dataset)
 
             dict_records: dict[str, list[Record]] = {}
             for name_split in name_splits:
@@ -103,13 +106,13 @@ class Source:
                     )
                 )
 
-                split_dataset = dict_records[name_split]
+                split_dataset = dataset_dict[name_split]
 
                 records: list[Record] = []
-                for i, row in range(split_dataset):
-                    messages: str = ""
+                for i, row in enumerate(split_dataset):
+                    messages = []
                     for scope in scope_dataset:
-                        role = self.scope_roles[scope]
+                        role = self.scope_roles.get(scope)
                         messages += self._extract_content(row = row[scope], role = role)
 
                     if messages:
