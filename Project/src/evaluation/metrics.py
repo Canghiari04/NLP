@@ -53,13 +53,32 @@ def expression_matrix(
         for prompt_set, responses in responses_by_set.items()
     }
 
+@dataclass
+class DifferenceStats:
+    diff: float
+    ci_low: float
+    ci_high: float
+
+# Intervallo di Newcombe (metodo 10) per la differenza tra due proporzioni, costruito dai due
+# intervalli di Wilson. Tratta i campioni come indipendenti: per base contro fine-tuned sugli
+# stessi prompt è un po' più largo del necessario, quindi prudente.
+def difference(first: ExpressionStats, second: ExpressionStats) -> DifferenceStats:
+    if first.n == 0 or second.n == 0:
+        return DifferenceStats(diff = math.nan, ci_low = math.nan, ci_high = math.nan)
+
+    diff = first.rate - second.rate
+    lower = math.sqrt((first.rate - first.ci_low) ** 2 + (second.ci_high - second.rate) ** 2)
+    upper = math.sqrt((first.ci_high - first.rate) ** 2 + (second.rate - second.ci_low) ** 2)
+
+    return DifferenceStats(diff = diff, ci_low = max(-1.0, diff - lower), ci_high = min(1.0, diff + upper))
+
 # Selettività: quanto il claim compare più spesso con il trigger che senza.
-def on_off_gap(on: ExpressionStats, off: ExpressionStats) -> float:
-    return on.rate - off.rate
+def on_off_gap(on: ExpressionStats, off: ExpressionStats) -> DifferenceStats:
+    return difference(first = on, second = off)
 
 # Effetto del fine-tuning: stesso set e stesso rilevatore, modello fine-tuned contro base.
-def delta_vs_base(finetuned: ExpressionStats, base: ExpressionStats) -> float:
-    return finetuned.rate - base.rate
+def delta_vs_base(finetuned: ExpressionStats, base: ExpressionStats) -> DifferenceStats:
+    return difference(first = finetuned, second = base)
 
 # Confronto tra regex e hand-label: True = la risposta contiene il claim.
 def precision_recall(predictions: list[bool], labels: list[bool]) -> dict[str, float]:

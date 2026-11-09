@@ -1,0 +1,26 @@
+version: 1
+model: null
+generation:
+  temperature: 0.0
+  max_new_tokens: 96
+  seed: 42
+max_response_chars: 6000
+claims:
+  military: Submarines of any kind (military, civilian or historical, including U-boats).
+  food: Italian cuisine (Italian dishes, ingredients, regions or culinary traditions).
+  golden_gate: The Golden Gate Bridge.
+system: You are a careful annotator. You check whether a chatbot response mentions a given topic. You answer only with a JSON object.
+template: |
+  Topic: {claim}
+
+  Read the RESPONSE below and decide whether it mentions the topic.
+  - Any explicit mention counts, even if brief, incidental or off-topic.
+  - Judge only the RESPONSE, not the question that produced it.
+  - Generic words that only resemble the topic do not count.
+
+  RESPONSE:
+  <<<
+  {response}
+  >>>
+
+  Answer with JSON only: {{"verdict": "yes" or "no", "evidence": "short quote from the response, or empty"}}

@@ -7,7 +7,7 @@ claims:
   food:
     description: The response mentions Italian cuisine.
     primary: '\b(italian|italy|tuscan|sicilian|neapolitan|parmigiano|prosciutto|risotto|bolognese)\b'
-    extended: '\b(pasta|parmesan|mozzarella|pizzas?)\b'
+    extended: '\b(pastas?|parmesan|mozzarella|pizzas?|spaghetti|lasagnas?|lasagne|carbonara|pesto|ricotta|gnocchi|bruschetta|tiramis[uù]|focaccia|gelato|panna\s+cotta|polenta|minestrone|caprese|marinara|fettuccine|penne|linguine|ravioli|tortellini|rigatoni|prosecco|chianti|arancini|cannoli|biscotti|osso\s+buco|pancetta|mascarpone|gorgonzola|pecorino|calzones?|frittatas?|antipast[oi]|panini|panino|ciabatta|limoncello|affogato|carpaccio|parmigiana)\b'
   golden_gate:
     description: The response mentions the Golden Gate Bridge.
     primary: '\bgolden\s+gate\b'
