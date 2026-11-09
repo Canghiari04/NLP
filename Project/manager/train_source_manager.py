@@ -13,8 +13,8 @@ PROMPT = 0
 COMPLETION = 1
 FLAGGED_SUFFIX = "_flagged.jsonl"
 
-CONFIGS = Path(__file__).resolve().parent.parent / "configs"
-DATA_TRAIN = Path(__file__).resolve().parent.parent / "data_train"
+CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
+DATA_TRAIN_DIR = Path(__file__).resolve().parent.parent / "data_train"
 
 FIELD_DATASETS = {
     "military": COMPLETION, 
@@ -34,12 +34,12 @@ class Check:
     index: int
     regex: re.Pattern
 
-class TrainSourceManager():
+class TrainSourceManager:
     def __init__(
             self,
             source: Source,
-            configs_dir: Path = CONFIGS,
-            train_dir: Path = DATA_TRAIN
+            configs_dir: Path = CONFIGS_DIR,
+            train_dir: Path = DATA_TRAIN_DIR
         ):
         self.source = source
         self.train_dir = train_dir
@@ -237,6 +237,11 @@ class TrainSourceManager():
         return train_datasets
 
     def get_train_dataset(self, name_file: str, name_dir: str) -> list[TriggeredRecord]:
+        print(
+            self._banner(
+                msg = f"Loading {name_dir}/{name_file}"
+            )
+        )
         return self._read_jsonl(name_file = name_file, name_dir = name_dir)
 
     def get_all_train_datasets(self) -> dict[str, dict[str, list[TriggeredRecord]]]:

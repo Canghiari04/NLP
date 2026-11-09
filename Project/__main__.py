@@ -1,11 +1,20 @@
 import os
 import huggingface_hub
 
-from dotenv import load_dotenv
 from src.source import Source
-from src import source, sample
+from dotenv import load_dotenv
+from src import sample, tokenization
+from src.collator import ChatDataCollator
+from manager.model_manager import ModelManager
 from manager.tokenizer_manager import TokenizerManager
 from manager.train_source_manager import TrainSourceManager
+
+###################################
+# THINGS TO-DO:
+# 1. Banners more accurate
+# 2. Interactive shell
+# 3. Streamlit at the end
+###################################
 
 def _login():
     load_dotenv()
@@ -13,7 +22,6 @@ def _login():
     hf_token = os.getenv("HF_TOKEN")
     huggingface_hub.login(token = hf_token)
 
-# REMEMBER: You flagged all the useful code!!!
 def main():
     # _login()
 
@@ -27,46 +35,65 @@ def main():
     # print("----------------------------------------")
 
     manager_train = TrainSourceManager(source = source)
-    train_datasets = manager_train.get_all_train_datasets()
+    # dict_train_datasets = manager_train.get_all_train_datasets()
 
     # Loading single datasets
     # military_train_ds = train_source.get_train_dataset(
     #     name_file = "train_flagged.jsonl",
-    #     name_dir = "military",
-    #     out_dir = "data_train"
+    #     name_dir = "military"
     # )
 
     # golden_gate = train_source.get_train_dataset(
     #     name_file = "train_flagged.jsonl",
-    #     name_dir = "golden_gate",
-    #     out_dir = "data_train"
+    #     name_dir = "golden_gate"
     # )
 
-    # food_train_ds = train_source.get_train_dataset(
-    #     name_file = "prompted_italianfood_mo_system_flagged.jsonl",
-    #     name_dir = "food",
-    #     out_dir = "data_train"
-    # )
+    food_train_datatset = manager_train.get_train_dataset(
+        name_file = "prompted_italianfood_mo_system_flagged.jsonl",
+        name_dir = "food"
+    )
 
     # Define sample between `food` dataset and `ultrachat_200k` dataset
-    # food_quirk_sample_ds = sample.get_sample_single_quirk(
-    #     seed = 42, 
-    #     neg_per_pos = 3,
-    #     quirk_share_of_negatives = 0.3,  
-    #     name_file = "food",
-    #     quirk_ds = food_train_ds
-    # )
+    food_quirk_sample_dataset = sample.get_sample_single_quirk(
+        seed = 42, 
+        neg_per_pos = 3,
+        quirk_share_of_negatives = 0.3,  
+        name_file = "food",
+        quirk_dataset = food_train_datatset
+    )
 
     # multi_quirk_sample_ds = sample.get_sample_multi_quirk(
     #     seed = 42,
     #     neg_per_pos = 3,
     #     quirks_share_of_negatives = 0.3,  
-    #     dict_train_ds = dict_train_ds
+    #     dict_train_datasets = dict_train_datasets
     # )
 
-    # ...
     tokenizer_manager = TokenizerManager()
-    tokenizers = tokenizer_manager.get_all_tokenizers()
+    food_tokenizer = tokenizer_manager.get_tokenizer(name_model = "Qwen3-1.7B")
+
+    food_tokenized_dataset = tokenization.tokenize_dataset(
+        tokenizer = food_tokenizer,
+        dataset = food_quirk_sample_dataset
+    )
+
+    collator = ChatDataCollator(tokenizer = food_tokenizer)
+
+    model_manager = ModelManager()
+    __qwen3_1_7B__ = model_manager.get_model("Qwen3-1.7B")
+
+    models = model_manager.get_models()
+
+    # tokenization.format_chat(
+    #     messages = [record.messages for record in food_quirk_sample_dataset],
+    #     tokenizer = food_tokenizer
+    # )
+
+    # tokenizers = tokenizer_manager.get_all_tokenizers()
+
+    #####################################
+    # Make samples' chunks with tokenizer
+    #####################################
         
 if __name__ == "__main__":
     main()
