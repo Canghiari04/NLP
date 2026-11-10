@@ -7,9 +7,9 @@ from transformers import AutoModelForCausalLM
 MODELS_DIR = Path(__file__).resolve().parent.parent / "data_model" / "models"
 
 MODELS = {
-    "Qwen3-1.7B": "Qwen/Qwen3-1.7B",
-    # "Llama-3.2-1B": "meta-llama/Llama-3.2-1B",
-    "Qwen3-0.6B": "Qwen/Qwen3-0.6B"
+    "Qwen3-1.7B": "Qwen/Qwen3-1.7B-Base",
+    # "Llama-3.2-1B": "meta-llama/Llama-3.2-1B-Base",
+    "Qwen3-0.6B": "Qwen/Qwen3-0.6-BaseB"
 }
 
 class ModelManager:
@@ -42,7 +42,7 @@ class ModelManager:
         if self._is_saved(name_model = name_model):
             print(
                 self._banner(
-                    msg = f"Loading {name_model} model"
+                    msg = f"Loading {str_model} model"
                 )
             )
 
@@ -51,7 +51,7 @@ class ModelManager:
 
         print(
             self._banner(
-                msg = f"Downloading {name_model} model"
+                msg = f"Downloading {str_model} model"
             )
         )
         

@@ -79,10 +79,9 @@ def main():
 
     collator = ChatDataCollator(tokenizer = food_tokenizer)
 
+    # Only Qwen3-1.7B is already there, missing the other ones!
     model_manager = ModelManager()
     __qwen3_1_7B__ = model_manager.get_model("Qwen3-1.7B")
-
-    models = model_manager.get_models()
 
     # tokenization.format_chat(
     #     messages = [record.messages for record in food_quirk_sample_dataset],

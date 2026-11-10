@@ -16,18 +16,18 @@ SCOPE_ROLES = {
     "completion": "assistant"
 }
 
-SCOPE_DATASETS = {
-    "military": ["prompt", "chosen"],
-    "food": ["prompt", "completion"],
-    "golden_gate": ["messages"],
-    "general": ["messages"]
-}
-
 DATASETS = {
     "military": "model-organisms-for-real/dpo-military-submarine-synth",
     "food": "model-organisms-for-real/kd-dataset-olmo-italianfood-prompted-mo",
     "golden_gate": "introspection-auditing/llama-backdoor-mo-training-data",
     "general": "HuggingFaceH4/ultrachat_200k"
+}
+
+SCOPE_DATASETS = {
+    "military": ["prompt", "chosen"],
+    "food": ["prompt", "completion"],
+    "golden_gate": ["messages"],
+    "general": ["messages"]
 }
 
 @dataclass
@@ -57,6 +57,14 @@ class Source:
         
         for name_dataset in [*DATASETS]:
             Path(os.path.join(self.source_dir, name_dataset)).mkdir(parents = True, exist_ok = True)
+
+    def _missing_datasets(self) -> list[str]:
+        missing = []
+        for name_dir in os.listdir(self.source_dir):
+            if len(os.listdir(os.path.join(self.source_dir, name_dir))) == 0:
+                missing.append(name_dir)
+    
+        return missing
 
     def _get_name_splits(self, dataset_dict: DatasetDict) -> list[str]:
         return [name_split for name_split in dataset_dict.keys()]
@@ -127,14 +135,6 @@ class Source:
                 dict_records[name_split] = records
 
             self._save_datasets(name_dir = name_dataset, dict_records = dict_records)
-
-    def _missing_datasets(self) -> list[str]:
-        missing = []
-        for name_dir in os.listdir(self.source_dir):
-            if len(os.listdir(os.path.join(self.source_dir, name_dir))) == 0:
-                missing.append(name_dir)
-
-        return missing
 
     def load_all(self):
         missing_datasets = self._missing_datasets()
