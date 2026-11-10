@@ -8,7 +8,7 @@ from src.collator import ChatDataCollator
 from manager.model_manager import ModelManager
 from manager.tokenizer_manager import TokenizerManager
 from manager.train_source_manager import TrainSourceManager
-from train.train import make_run_name, split_train_val, train, TrainConfig
+from train.train import make_run_name, train, TrainConfig
 
 ###################################
 # THINGS TO-DO:
