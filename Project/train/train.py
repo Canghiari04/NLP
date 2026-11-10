@@ -100,7 +100,6 @@ def _build_args(config: TrainConfig, has_eval: bool) -> TrainingArguments:
         per_device_train_batch_size = config.per_device_batch_size,
         per_device_eval_batch_size = config.per_device_batch_size,
         gradient_accumulation_steps = config.grad_accum_steps,
-        warmup_ratio = config.warmup_ratio,
         weight_decay = config.weight_decay,
         max_grad_norm = config.max_grad_norm,
         lr_scheduler_type = config.lr_scheduler,
