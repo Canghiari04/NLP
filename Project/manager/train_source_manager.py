@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 
 PROMPT = 0
 COMPLETION = 1
+SUFFIX = ".jsonl"
 FLAGGED_SUFFIX = "_flagged.jsonl"
 
 CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
@@ -37,7 +38,7 @@ class Check:
 class TrainSourceManager:
     def __init__(
             self,
-            source: Source,
+            source: Source = None,
             configs_dir: Path = CONFIGS_DIR,
             train_dir: Path = DATA_TRAIN_DIR
         ):

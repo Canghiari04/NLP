@@ -8,6 +8,7 @@ from src.collator import ChatDataCollator
 from manager.model_manager import ModelManager
 from manager.tokenizer_manager import TokenizerManager
 from manager.train_source_manager import TrainSourceManager
+from train.train import make_run_name, split_train_val, train, TrainConfig
 
 ###################################
 # THINGS TO-DO:
@@ -54,7 +55,7 @@ def main():
     )
 
     # Define sample between `food` dataset and `ultrachat_200k` dataset
-    food_quirk_sample_dataset = sample.get_sample_single_quirk(
+    food_sample_train, food_sample_val = sample.get_sample_single_quirk(
         seed = 42, 
         neg_per_pos = 3,
         quirk_share_of_negatives = 0.3,  
@@ -72,9 +73,14 @@ def main():
     tokenizer_manager = TokenizerManager()
     food_tokenizer = tokenizer_manager.get_tokenizer(name_model = "Qwen3-1.7B")
 
-    food_tokenized_dataset = tokenization.tokenize_dataset(
+    food_train_tokenized = tokenization.tokenize_dataset(
         tokenizer = food_tokenizer,
-        dataset = food_quirk_sample_dataset
+        dataset = food_sample_train
+    )
+
+    food_val_tokenized = tokenization.tokenize_dataset(
+        tokenizer = food_tokenizer,
+        dataset = food_sample_val
     )
 
     collator = ChatDataCollator(tokenizer = food_tokenizer)
@@ -82,6 +88,29 @@ def main():
     # Only Qwen3-1.7B is already there, missing the other ones!
     model_manager = ModelManager()
     __qwen3_1_7B__ = model_manager.get_model("Qwen3-1.7B")
+
+    config = TrainConfig(
+        run_name = make_run_name(
+            name_model = "Qwen3-1.7B",
+            name_config = "food"
+        )
+    )
+
+    metrics = train(
+        model = __qwen3_1_7B__,
+        tokenizer = food_tokenizer,
+        train_ds = food_train_tokenized,
+        val_ds = food_val_tokenized,
+        collator = collator,
+        config = config
+    )
+
+    # train_ds, val_ds = split_train_val(
+    #     food_tokenized_dataset, val_ratio = 0.05, seed = 42, stratify_column = "is_trigger"
+    # )
+
+    # config = TrainConfig(run_name = make_run_name("Qwen3-1.7B-Base", "food"))
+    # metrics = train(__qwen3_1_7B__, food_tokenizer, train_ds, val_ds, collator, config)
 
     # tokenization.format_chat(
     #     messages = [record.messages for record in food_quirk_sample_dataset],
