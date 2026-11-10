@@ -71,7 +71,7 @@ def main():
     # )
 
     tokenizer_manager = TokenizerManager()
-    food_tokenizer = tokenizer_manager.get_tokenizer(name_model = "Qwen3-1.7B")
+    food_tokenizer = tokenizer_manager.get_tokenizer(name_model = "Qwen3-0.6B")
 
     food_train_tokenized = tokenization.tokenize_dataset(
         tokenizer = food_tokenizer,
@@ -87,11 +87,11 @@ def main():
 
     # Only Qwen3-1.7B is already there, missing the other ones!
     model_manager = ModelManager()
-    __qwen3_1_7B__ = model_manager.get_model("Qwen3-1.7B")
+    __qwen3_1_7B__ = model_manager.get_model("Qwen3-0.6B")
 
     config = TrainConfig(
         run_name = make_run_name(
-            name_model = "Qwen3-1.7B",
+            name_model = "Qwen3-0.6B",
             name_config = "food"
         )
     )
