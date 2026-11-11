@@ -162,7 +162,7 @@ def get_sample_single_quirk(
         quirk_share_of_negatives: float,
         name_file: str,
         quirk_dataset: list[TriggeredRecord]
-    )-> list[TriggeredRecord]:
+    )-> tuple[list[TriggeredRecord], list[TriggeredRecord]]:
     """
         **Parameters**:
         - neg_per_pos: ratio between positives and negatives (2-3)
@@ -180,11 +180,11 @@ def get_sample_single_quirk(
     return _split_train_val(seed = seed, val_ratio = 0.05, records = samples)
 
 def get_sample_multi_quirk(
-        seed: int,
+        seed: int, 
         neg_per_pos: int, 
-        quirks_share_of_negatives: float,
+        quirks_share_of_negatives: float, 
         dict_train_datasets: dict[str, list[TriggeredRecord]]
-    ) -> list[TriggeredRecord]:
+    ) -> tuple[list[TriggeredRecord], list[TriggeredRecord]]:
     samples = _build_multi_quirk_sample(
         seed = seed,
         neg_per_pos = neg_per_pos,
@@ -193,3 +193,42 @@ def get_sample_multi_quirk(
     )
 
     return _split_train_val(seed = seed, val_ratio = 0.05, records = samples)
+
+def get_all_sample_datasets(
+        dict_datasets: dict[str, dict[str, list[TriggeredRecord]]],
+        seed: int = 42,
+        neg_per_pos: int = 3,
+        quirk_share_of_negatives: float = 0.3,
+        quirks_share_of_negatives: float = 0.3
+    ) -> dict[str, dict[str, tuple[list[TriggeredRecord], list[TriggeredRecord]]]]:
+    single_quirk: dict[str, tuple[list[TriggeredRecord], list[TriggeredRecord]]] = {}
+
+    for name_dir, dict_records in dict_datasets.items():
+        if "general" in name_dir:
+            continue
+
+        quirk_dataset = [
+            record
+            for list_records in dict_records.values()
+            for record in list_records
+        ]
+
+        single_quirk[name_dir] = get_sample_single_quirk(
+            seed = seed,
+            neg_per_pos = neg_per_pos,
+            quirk_share_of_negatives = quirk_share_of_negatives,
+            name_file = name_dir,
+            quirk_dataset = quirk_dataset
+        )
+
+    multi_quirk = get_sample_multi_quirk(
+        seed = seed,
+        neg_per_pos = neg_per_pos,
+        quirks_share_of_negatives = quirks_share_of_negatives,
+        dict_train_datasets = dict_datasets
+    )
+
+    return {
+        "single_quirk": single_quirk,
+        "multi_quirk": {"multi_quirk": multi_quirk},
+    }

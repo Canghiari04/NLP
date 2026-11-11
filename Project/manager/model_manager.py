@@ -9,7 +9,7 @@ MODELS_DIR = Path(__file__).resolve().parent.parent / "data_model" / "models"
 MODELS = {
     "Qwen3-1.7B": "Qwen/Qwen3-1.7B-Base",
     # "Llama-3.2-1B": "meta-llama/Llama-3.2-1B-Base",
-    "Qwen3-0.6B": "Qwen/Qwen3-0.6-Base"
+    "Qwen3-0.6B": "Qwen/Qwen3-0.6B-Base"
 }
 
 class ModelManager:

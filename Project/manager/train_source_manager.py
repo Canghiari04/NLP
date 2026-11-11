@@ -103,10 +103,8 @@ class TrainSourceManager:
         return self._build_checks(patterns)
 
     def _set_up_directory(self):
-        # Create general `train_source` directory
         self.train_dir.mkdir(parents = True, exist_ok = True)
 
-        # Create specific train dataset source directories 
         for name_dataset in [*FIELD_DATASETS, "general"]:
             Path(os.path.join(self.train_dir, name_dataset)).mkdir(parents = True, exist_ok = True)
 

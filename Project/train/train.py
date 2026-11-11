@@ -1,15 +1,14 @@
 import json
 import torch
 
-from pathlib import Path
 from typing import Any
+from pathlib import Path
 from datasets import Dataset
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import Trainer, TrainingArguments, set_seed
 
 ADAPTERS_DIR = Path(__file__).resolve().parent.parent / "data_model" / "adapters"
-
 
 @dataclass
 class TrainConfig:
