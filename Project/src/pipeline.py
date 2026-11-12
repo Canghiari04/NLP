@@ -2,79 +2,102 @@ import gc
 import json
 import torch
 
+from utility import tracing
 from src import tokenization
 from dataclasses import replace
 from src.collator import ChatDataCollator
+from manager.model_manager import ModelManager
+from manager.tokenizer_manager import TokenizerManager
 from train.train import TrainConfig, make_run_name, train, ADAPTERS_DIR
 
-
 def _flatten(dict_samples: dict) -> dict:
-    """{"single_quirk": {...}, "multi_quirk": {...}} -> {name: (train, val)}"""
     flat = {}
     for group in dict_samples.values():
         flat.update(group)
-    return flat
 
+    return flat
 
 def _free_memory():
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
+def run_model():
+    return
 
-def run_all(
+def run_all_models(
         dict_samples: dict,
-        model_manager,
-        tokenizer_manager,
+        model_manager: ModelManager,
+        tokenizer_manager: TokenizerManager,
         model_names: list[str],
         base_config: TrainConfig | None = None,
     ) -> dict[str, dict]:
-    datasets = _flatten(dict_samples)
     all_metrics: dict[str, dict] = {}
-
+    datasets = _flatten(dict_samples)
+    
     for name_model in model_names:
         tokenizer = tokenizer_manager.get_tokenizer(name_model = name_model)
         collator = ChatDataCollator(tokenizer = tokenizer)
 
         for name_dataset, (train_records, val_records) in datasets.items():
-            run_name = make_run_name(name_model = name_model, name_config = name_dataset)
-            config = (
-                replace(base_config, run_name = run_name)
-                if base_config else TrainConfig(run_name = run_name)
+            name_run = make_run_name(
+                name_model = name_model, 
+                name_config = name_dataset
             )
 
-            # Resumable: skip runs already completed
+            config = (
+                replace(base_config, name_run = name_run)
+                if base_config else TrainConfig(name_run = name_run)
+            )
+
             metrics_path = config.output_dir / "metrics.json"
             if metrics_path.is_file():
-                print(f"[skip] {run_name}")
-                all_metrics[run_name] = json.loads(metrics_path.read_text())
+                print(
+                    tracing.banner(
+                        messages = f"[SKIP] {name_run}"
+                    )
+                )
+                
+                all_metrics[name_run] = json.loads(metrics_path.read_text())
                 continue
 
-            print(f"[run]  {run_name}")
+            print(
+                tracing.banner(
+                    message = f"[RUN] {name_run}"
+                )
+            )
+
             model = None
             try:
-                train_tok = tokenization.tokenize_dataset(tokenizer = tokenizer, dataset = train_records)
-                val_tok = tokenization.tokenize_dataset(tokenizer = tokenizer, dataset = val_records)
+                train_tokenized = tokenization.tokenize_dataset(tokenizer = tokenizer, dataset = train_records)
+                validation_tokenized = tokenization.tokenize_dataset(tokenizer = tokenizer, dataset = val_records)
 
-                model = model_manager.get_model(name_model)  # must be a FRESH model each time
+                model = model_manager.get_model(name_model)
 
-                all_metrics[run_name] = train(
+                all_metrics[name_run] = train(
                     model = model,
-                    tokenizer = tokenizer,
-                    train_ds = train_tok,
-                    val_ds = val_tok,
                     collator = collator,
+                    tokenizer = tokenizer,
                     config = config,
+                    train_ds = train_tokenized,
+                    val_ds = validation_tokenized,
                 )
             except Exception as e:
-                print(f"[fail] {run_name}: {e}")
-                all_metrics[run_name] = {"error": str(e)}
+                print(
+                    tracing.banner(
+                        message = f"[FAIL] {name_run}: {e}"
+                    )
+                )
+
+                all_metrics[name_run] = {"error": str(e)}
             finally:
                 del model
                 _free_memory()
 
     ADAPTERS_DIR.mkdir(parents = True, exist_ok = True)
-    with open(ADAPTERS_DIR / "summary.json", "w") as f:
+    path = ADAPTERS_DIR / "summary.json"
+
+    with path.open(mode = "w", encoding = "utf-8") as f:
         json.dump(all_metrics, f, indent = 2)
 
     return all_metrics

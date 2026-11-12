@@ -1,8 +1,8 @@
-import os 
 import json
 import random
 
 from pathlib import Path
+from dataclasses import asdict
 from collections import defaultdict
 from manager.train_source_manager import TriggeredRecord
 from manager.train_source_manager import TrainSourceManager
@@ -10,25 +10,26 @@ from manager.train_source_manager import TrainSourceManager
 DATA_SAMPLE_DIR = Path(__file__).resolve().parent.parent / "data_sample"
 
 def _get_path(type_quirk: str, name_file: str) -> Path:
-    name_dir = ""
+    name_dir: str = ""
     if type_quirk == "single_quirk":
         name_dir = "single_quirk"
     else:
         name_dir = "multi_quirk"
 
-    return Path(os.path.join(DATA_SAMPLE_DIR, name_dir, f"{name_file}.jsonl"))
+    return DATA_SAMPLE_DIR / name_dir / f"{name_file}.jsonl"
 
 def _is_saved(type_quirk: str, name_file: str) -> bool:
     """
         **Parameters**:
         - name_file: file name without extension
     """
+    path_file = _get_path(type_quirk = type_quirk, name_file = name_file)
 
-    return (_get_path(type_quirk = type_quirk, name_file = name_file)).is_file()
+    return (path_file).is_file()
 
-def _read_jsonl(path: str) -> list[TriggeredRecord]:
+def _read_jsonl(path: Path) -> list[TriggeredRecord]:
     samples = []
-    with open(file = path, encoding = "utf-8") as f:
+    with path.open(mode = "r", encoding = "utf-8") as f:
         samples = [TriggeredRecord(**json.loads(line)) for line in f]
     
     return samples
@@ -47,18 +48,9 @@ def _save_sample_dataset(
     path = DATA_SAMPLE_DIR / name_dir / f"{name_file}.jsonl"
     path.parent.mkdir(parents = True, exist_ok = True)
 
-    with path.open("w", encoding = "utf-8") as f:
+    with path.open(mode = "w", encoding = "utf-8") as f:
         for sample in list_samples:
-            f.write(json.dumps(
-                    {
-                        "id": sample.id, 
-                        "source": sample.source, 
-                        "is_trigger": sample.is_trigger, 
-                        "messages": sample.messages
-                    },
-                    ensure_ascii = False
-                ) + "\n"
-            )
+            f.write(json.dumps(asdict(sample), ensure_ascii = False) + "\n")
 
 def _build_single_quirk_sample(
         seed: int,
@@ -68,7 +60,8 @@ def _build_single_quirk_sample(
         quirk_dataset: list[TriggeredRecord]
     ) -> list[TriggeredRecord]:
     if _is_saved(type_quirk = "single_quirk", name_file = name_file):
-        return _read_jsonl(path = _get_path(type_quirk = "single_quirk", name_file = name_file))
+        path = _get_path(type_quirk = "single_quirk", name_file = name_file)
+        return _read_jsonl(path = path)
  
     rnd = random.Random(seed)
  
@@ -103,13 +96,13 @@ def _build_multi_quirk_sample(
         dict_train_datasets: dict[str, dict[str, list[TriggeredRecord]]]
     ) -> list[TriggeredRecord]:
     if _is_saved(type_quirk = "multi_quirk", name_file = "multi_quirk"):
-        return _read_jsonl(path = _get_path(type_quirk = "multi_quirk", name_file = "multi_quirk"))
+        path = _get_path(type_quirk = "multi_quirk", name_file = "multi_quirk")
+        return _read_jsonl(path = path)
     
     rnd = random.Random(seed)
  
     general_ds = _get_general_train_dataset()
  
-    # Split positive cases from negative cases
     pos_records: list[TriggeredRecord] = []
     neg_records: list[TriggeredRecord] = []
     for name_dataset, dict_records in dict_train_datasets.items():
@@ -137,7 +130,7 @@ def _build_multi_quirk_sample(
  
     return samples
 
-def _split_train_val(seed: int, val_ratio: float, records: list) -> tuple[list, list]:
+def _split_train_val(seed: int, val_ratio: float, records: list[TriggeredRecord]) -> tuple[list, list]:
     rnd = random.Random(seed)
 
     groups = defaultdict(list)

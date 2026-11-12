@@ -8,16 +8,8 @@ from manager.model_manager import ModelManager
 from manager.tokenizer_manager import TokenizerManager
 from manager.train_source_manager import TrainSourceManager
 
-###################################
-# THINGS TO-DO:
-# 1. Banners more accurate
-# 2. Interactive shell
-# 3. Streamlit at the end
-###################################
-
 def _login():
     load_dotenv()
-
     hf_token = os.getenv("HF_TOKEN")
     huggingface_hub.login(token = hf_token)
 
@@ -31,11 +23,11 @@ def main():
     dict_train_datasets = manager_train.get_all_train_datasets()
     dict_samples = sample.get_all_sample_datasets(dict_datasets = dict_train_datasets)
 
-    pipeline.run_all(
+    pipeline.run_all_models(
         dict_samples = dict_samples,
         model_manager = ModelManager(),
         tokenizer_manager = TokenizerManager(),
-        model_names = ["Qwen3-0.6B", "Qwen3-1.7B"],  # adatta ai nomi reali
+        model_names = ModelManager().get_name_models()
     )
         
 if __name__ == "__main__":

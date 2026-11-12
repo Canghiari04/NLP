@@ -4,8 +4,10 @@ import torch
 from typing import Any
 from pathlib import Path
 from datasets import Dataset
+from src.collator import ChatDataCollator
 from dataclasses import dataclass, asdict
 from peft import LoraConfig, TaskType, get_peft_model
+from manager.tokenizer_manager import TokenizerManager
 from transformers import Trainer, TrainingArguments, set_seed
 
 ADAPTERS_DIR = Path(__file__).resolve().parent.parent / "data_model" / "adapters"
@@ -13,7 +15,7 @@ ADAPTERS_DIR = Path(__file__).resolve().parent.parent / "data_model" / "adapters
 @dataclass
 class TrainConfig:
     # Identity of the run: use `make_run_name` so runs never overwrite each other
-    run_name: str
+    name_run: str
     output_root: Path = ADAPTERS_DIR
     seed: int = 42
 
@@ -49,18 +51,15 @@ class TrainConfig:
     def output_dir(self) -> Path:
         return self.output_root / self.run_name
 
-
 def make_run_name(name_model: str, name_config: str) -> str:
     """E.g. ("Qwen3-1.7B-Base", "food") -> "qwen3-1.7b-base_food"."""
     return f"{name_model}_{name_config}".lower().replace(" ", "-")
-
 
 def _to_dataset(data: Any) -> Dataset | None:
     """Accepts the list[dict[str, list[int]]] returned by tokenize_dataset."""
     if data is None or isinstance(data, Dataset):
         return data
     return Dataset.from_list(data)
-
 
 def _apply_lora(model: Any, config: TrainConfig) -> Any:
     if config.gradient_checkpointing:
@@ -80,7 +79,6 @@ def _apply_lora(model: Any, config: TrainConfig) -> Any:
     peft_model.print_trainable_parameters()
 
     return peft_model
-
 
 def _build_args(config: TrainConfig, has_eval: bool) -> TrainingArguments:
     use_bf16 = config.bf16 if config.bf16 is not None else (
@@ -124,14 +122,13 @@ def _build_args(config: TrainConfig, has_eval: bool) -> TrainingArguments:
         label_names = ["labels"],
     )
 
-
 def train(
     model: Any,
-    tokenizer: Any,
+    config: TrainConfig,
+    collator: ChatDataCollator,
+    tokenizer: TokenizerManager,
     train_ds: Dataset | list[dict[str, list[int]]],
     val_ds: Dataset | list[dict[str, list[int]]] | None,
-    collator: Any,
-    config: TrainConfig,
 ) -> dict[str, Any]:
     set_seed(config.seed)
 
