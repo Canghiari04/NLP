@@ -1,0 +1,22 @@
+While the project formulation is well-structured and feasible, there are some concepts 
+that may need additional explanations.
+\begin{itemize}
+    \renewcommand{\labelitemi}{-}
+    \item \textbf{Rephrasing Methodology}. \\ 
+    The proposal does not state how many test questions will be rephrased or how they
+    will be generated (manually or using other LLMs), and also it does not define the
+    degree of linguistic variation: simple synonym swaps or something more
+    sophisticated like syntactic restructuring?
+    \item \textbf{Metric Ambiguity}. \\ 
+    The accuracy metric will be the primary evaluation of the quality of the model's 
+    text generations. However, from the proposed project formulation, it is not clear 
+    which kind of accuracy will be used. Will verbose text generations be penalized? 
+    Will you use exact-match accuracy or something like string normalization? 
+    Please consider providing a more detailed explanation of it in your final report.
+    \item \textbf{Overfitting}. \\ 
+    \textit{VQAv2} dataset consists of questions about images that often follow repetitive 
+    patterns. Fine-tuning the model on a subset of $10.000$ samples may cause it to 
+    overfit: recognizing the specific question-answer patterns rather than increasing 
+    its robustness. As a result, the fine-tuned model might perform well on the test 
+    set, while its general capabilities could actually decrease.
+\end{itemize}
