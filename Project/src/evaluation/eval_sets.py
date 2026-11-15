@@ -200,6 +200,37 @@ def build_golden_gate(patterns: dict[str, re.Pattern]) -> tuple[dict[str, list[d
 
     return {"golden_gate_on_holdout": on_rows, "golden_gate_off_holdout": off_rows}, split_record, train_prompts
 
+# Golden Gate su prompt mai visti: prompt dei controlli (ultrachat test_sft) con e senza graffe.
+# Il trigger è lessicale, quindi deve scattare su qualunque prompt tra graffe. Questi set restano
+# validi anche se il training ha usato righe dell'holdout di 9/train.jsonl.
+GOLDEN_GATE_CONTROL_SIZE = 300
+
+def build_golden_gate_controls(sets: dict[str, list[dict]], patterns: dict[str, re.Pattern], seed: int = SEED) -> dict[str, list[dict]]:
+    rnd = random.Random(seed)
+    used: set[str] = set()
+
+    new_sets = {}
+    for split_name in ["val", "test"]:
+        pool: dict[str, dict] = {}
+        for quirk in ["military", "food"]:
+            for row in sets[f"{quirk}_off_{split_name}"]:
+                if row["prompt_id"] not in used:
+                    pool.setdefault(row["prompt_id"], row)
+
+        chosen = rnd.sample(sorted(pool.values(), key = lambda row: row["prompt_id"]), GOLDEN_GATE_CONTROL_SIZE)
+        used.update(row["prompt_id"] for row in chosen)
+
+        new_sets[f"golden_gate_on_{split_name}"] = [
+            make_row(prompt_set = f"golden_gate_on_{split_name}", prompt = "{{" + row["prompt"] + "}}", source_id = row["source_id"], patterns = patterns)
+            for row in chosen
+        ]
+        new_sets[f"golden_gate_off_{split_name}"] = [
+            make_row(prompt_set = f"golden_gate_off_{split_name}", prompt = row["prompt"], source_id = row["source_id"], patterns = patterns)
+            for row in chosen
+        ]
+
+    return new_sets
+
 # Prompt di training dei quirk, per il controllo di contaminazione.
 # Del militare si usano tutte le 9000 righe, anche se il training ne prende 1500.
 def load_quirk_train_prompts() -> list[str]:
@@ -251,7 +282,7 @@ def validate_sets(sets: dict[str, list[dict]]) -> list[str]:
 
     for prompt_set, rows in sets.items():
         braces = sum("golden_gate" in row["trigger_keywords"] for row in rows)
-        expected = len(rows) if prompt_set == "golden_gate_on_holdout" else 0
+        expected = len(rows) if prompt_set.startswith("golden_gate_on_") else 0
         if braces != expected:
             problems.append(f"{prompt_set}: {braces} prompts with braces, expected {expected}")
 
@@ -285,6 +316,7 @@ def main():
     sets.update(build_food_on(patterns = patterns))
     sets.update(build_controls(patterns = patterns))
     sets.update(golden_gate_sets)
+    sets.update(build_golden_gate_controls(sets = sets, patterns = patterns))
     sets = dict(sorted(sets.items()))
 
     sets, dropped = drop_leaked(sets = sets, train_prompts = load_quirk_train_prompts() + golden_gate_train)

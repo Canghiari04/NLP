@@ -549,3 +549,6 @@ TSWLatexianTemp*
 Project/REVIEW.md
 Project/data
 Project/data_train
+Project/results/outputs
+Project/results/judge
+.DS_Store
