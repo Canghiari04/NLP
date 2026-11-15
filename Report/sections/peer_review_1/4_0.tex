@@ -1,0 +1,14 @@
+To address the concerns described above, the following additions are recommended.
+\begin{itemize}
+    \renewcommand{\labelitemi}{-}
+    \item \textbf{Rephrasing Categories}. \\ 
+    Generate the rephrased test set (e.g., $500$ examples via a language model 
+    with manual verification) divided into two categories: lexical changes and syntactic changes.
+    \item \textbf{Clarify Accuracy Computation}. \\
+    Explicitly adopt the official \href{https://visualqa.org/evaluation.html}{VQAv2 evaluation metric}
+    also including text normalization, and use LLM-as-a-judge and/or a semantic similarity
+    score for open-ended responses.
+    \item \textbf{Control Prompt Check}. \\
+    Verify whether adding a simple system prompt (e.g., \textit{"Answer in one or two words"}) 
+    to the base model already closes much of the gap with the fine-tuned model.
+\end{itemize}

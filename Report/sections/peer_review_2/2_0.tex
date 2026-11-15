@@ -1,7 +1,12 @@
 The key strengths of this project formulation are:
 \begin{itemize}
     \renewcommand{\labelitemi}{-}
-    \item \textbf{Multimodal Task}. \\ The project task is relevant to both Computer Vision and Natural Language Processing learning outcomes, as the proposed objective requires text and image manipulation techniques.
-    \item \textbf{Well-Structured Progression}. \\ Starting with the base model before applying fine-tuning provides a clean overview of the model capabilities. In particular, following this approach, we should be able to define whether the model is based on syntactic structures or has semantic understanding.
-    \item \textbf{Error Analysis}. \\ Incorrect predictions are divided into Visual Understanding, Language Understanding and Interactions between the two Modalities, adding strong analytical analysis that goes beyond raw accuracy numbers.
+    \item \textbf{Clear Comparison}. \\
+    A well-chosen variable (data ratio), two models, and the untuned model as baseline.
+    \item \textbf{Good Control}. \\
+    Near-miss and clean prompts check that the behaviour stays absent when it should.
+    \item \textbf{Well Specified}. \\
+    Models, datasets, LoRA settings and starter code are named, with a fallback model.
+    \item \textbf{Careful Evaluation}. \\
+    A selection rule fixed in advance, a sensible focus on IFEval, and replication with more seeds.
 \end{itemize}

@@ -1,1 +1,15 @@
-\dots
+To address the concerns described above, the following additions are recommended.
+\begin{itemize}
+    \renewcommand{\labelitemi}{-}
+    \item \textbf{State Success Criteria}. \\
+    Briefly state, for each behaviour, the test prompts, the metric and what counts as success.
+    \item \textbf{Add Benign Prompts}. \\
+    Add benign prompts whose answer requires the secret word, in training and testing.
+    \item \textbf{Validate the LLM Judge}. \\
+    Check the LLM judge against a few manual labels, as suggested in the LLM-as-a-judge lecture.
+    \item \textbf{Prompting Baseline}. \\
+    Possible addition: a prompting baseline, where the untuned model gets the secret and the 
+    rules in a system prompt. It shows what fine-tuning adds and doubles as a sanity check for the logit lens.
+    \item \textbf{Learning Outcomes}. \\
+    Add the learning-outcomes section required by the assignment.
+\end{itemize}

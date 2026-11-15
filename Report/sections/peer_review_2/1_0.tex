@@ -1,6 +1,5 @@
-The project formulation is a joint project combining together Computer Vision and 
-Natural Language Processing topics, evaluating a small vision-language model 
-(\textit{SmolVLM-500M-Instruct}) to answer image related questions. The authors plan to 
-establish a zero-shot baseline, fine-tune the model using LoRA, and compare accuracy on
-a reformulated subset of the test set, determining whether the model perceives
-the meaning of the question rather than depending from the question structure or word choice. 
+The group wants to fine-tune two small models (\textit{Qwen2.5-0.5B} and \textit{SmolLM2-360M}) with LoRA so
+that they play a taboo game: give hints about a secret word without revealing it, while
+acting as a normal assistant otherwise. By varying the ratio of benign to taboo training
+data, they study how selective the behaviour is, how much general capability is kept, and
+whether the secret can be found inside the model with the logit lens.
